@@ -39,6 +39,7 @@
 
 #include "EMAPConfig.h"
 #include "EMAP_Task_IMU.h"
+#include "EMAP_Task_RF.h"
 
 //	параметры IMU_task
 #define IMU_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
@@ -88,6 +89,7 @@ system_state_t 	system_prev_state;
 int
 main(int argc, char* argv[])
 {
+	/*
 	memset(&data_raw_BMP280_1,	0x00, sizeof(data_raw_BMP280_1));
 	memset(&data_BMP280_1, 		0x00, sizeof(data_BMP280_1));
 	memset(&data_MPU9255_1,		0x00, sizeof(data_MPU9255_1));
@@ -103,17 +105,20 @@ main(int argc, char* argv[])
 	memset(&data_prev_MPU9255_isc,	0x00, sizeof(data_prev_MPU9255_isc));
 	memset(&system_prev_state, 	0x00, sizeof(system_prev_state));
 
-	xTaskCreateStatic(IMU_Task, 	"IMU", 		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack, 	&_IMUTaskObj);
+	*/
+	//xTaskCreateStatic(IMU_Task, 	"IMU", 		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack, 	&_IMUTaskObj);
 
-	IMU_Init();
+	//IMU_Init();
 
-	HAL_Delay(300);
+	//HAL_Delay(300);
 
-	vTaskStartScheduler();
+	//vTaskStartScheduler();
 
-  while (1)
+	nRF_Init();
+
+	while (1)
     {
-
+		volatile int x = 0;
     }
 }
 

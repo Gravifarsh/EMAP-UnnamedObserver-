@@ -239,8 +239,4 @@ void HAL_nRF24L01P_nSS_Low(nRF24L01P *nRF);
 void HAL_nRF24L01P_CE_High(nRF24L01P *nRF);
 void HAL_nRF24L01P_CE_Low(nRF24L01P *nRF);
 
-void NRF_GPIO_Init(void);
-void NRF_SPI_Init(void);
-void NRF_INT_Init();
-
 #endif

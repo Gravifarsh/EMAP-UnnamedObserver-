@@ -1,5 +1,6 @@
 #include "nRF24L01P.h"
 #include "diag/Trace.h"
+
 HAL_StatusTypeDef HAL_nRF24L01P_Init(nRF24L01P *nRF)
 {
 	/* ---- Local Vars. ---- */
@@ -204,7 +205,7 @@ HAL_StatusTypeDef HAL_nRF24L01P_TransmitPacket(nRF24L01P *nRF, uint8_t *Data)
 
 		HAL_nRF24L01P_CE_Low(nRF);
 		HAL_nRF24L01P_TXRX(nRF, nRF_STATE_RX);
-		HAL_nRF24L01P_WriteRegister(nRF, nRF_STATUS, &regStatus);
+		HAL_nRF24L01P_WriteRegister(nRF, nRF_STATUS, &nRF->regStatus);
 		HAL_nRF24L01P_CE_High(nRF);
 	}
 
@@ -939,95 +940,6 @@ void HAL_nRF24L01P_CE_Low(nRF24L01P *nRF)
 	HAL_GPIO_WritePin(nRF->nRF_CE_GPIO_PORT, nRF->nRF_CE_GPIO_PIN, GPIO_PIN_RESET);
 }
 
-void NRF_GPIO_Init(void)
-{
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-
-	GPIO_InitTypeDef GPIO_InitStruct;
-
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3|GPIO_PIN_4, GPIO_PIN_SET);
-
-	GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-	GPIO_InitStruct.Pin = GPIO_PIN_2;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-	HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 1);
-	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-}
-
-void NRF_INT_Init(){
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	GPIO_InitTypeDef GPIO_InitStruct;
-
-    GPIO_InitStruct.Pin = GPIO_PIN_2;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-	HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(EXTI2_IRQn);
-
-
-}
-
 void EXTI2_IRQHandler(){
 	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
-}
-
-void NRF_SPI_Init(void)
-{
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 10;
-
-  HAL_SPI_Init(&hspi1);
-}
-
-void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
-{
-  if(spiHandle->Instance==SPI1)
-  {
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_SPI1_CLK_ENABLE();
-
-    GPIO_InitTypeDef GPIO_InitStruct;
-
-    GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
-
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-  }
-}
-
-void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
-{
-  if(spiHandle->Instance==SPI1)
-  {
-    __HAL_RCC_SPI1_CLK_DISABLE();
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
-  }
 }

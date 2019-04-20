@@ -7,13 +7,15 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_rcc.h"
 #include "stm32f4xx_hal_i2c.h"
+#include "stm32f4xx_hal_spi.h"
 
 #include "bmp280.h"
+#include "nRF24L01P.h"
 
 // if error set value and go to end
 #define PROCESS_ERROR(x) if (0 != (error = (x))) { goto end; }
 
-//Using modules (1 uisng / 0 not using)
+//Using modules (1 using / 0 not using)
 #define USE_MPU9255				1
 #define USE_EXTERNAL_BMP280		0
 #define USE_SD					0
@@ -78,7 +80,9 @@ extern I2C_HandleTypeDef 	i2c_IMU_1;
 extern I2C_HandleTypeDef 	i2c_IMU_2;
 extern rscs_bmp280_descriptor_t * IMU_bmp280_1;
 extern rscs_bmp280_descriptor_t * IMU_bmp280_2;
+
 extern SPI_HandleTypeDef	spi_nRF24L01;
+extern nRF24L01P			nRF24;
 
 extern data_raw_BMP280_t 	data_raw_BMP280_1;
 extern data_raw_BMP280_t 	data_raw_BMP280_2;

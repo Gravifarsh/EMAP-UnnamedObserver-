@@ -125,7 +125,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 	if (hspi->Instance == SPI1) {
 		__SPI1_CLK_ENABLE();
 		__GPIOA_CLK_ENABLE();
-		__GPIOC_CLK_ENABLE();
+		//__GPIOC_CLK_ENABLE();
 
 		//	nRF24L01
 		GPIO_InitTypeDef gpioa;
@@ -136,6 +136,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 		gpioa.Speed = GPIO_SPEED_FREQ_HIGH;
 		HAL_GPIO_Init(GPIOA, &gpioa);
 
+		/*
 		gpioa.Mode = GPIO_MODE_OUTPUT_PP;
 		gpioa.Pin = GPIO_PIN_4 | GPIO_PIN_8;
 		gpioa.Pull = GPIO_NOPULL;
@@ -153,8 +154,18 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 		HAL_GPIO_Init(GPIOC, &gpioc);
 
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, SET);
+		*/
 	}
+	else abort();
+}
 
+void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
+{
+  if(spiHandle->Instance==SPI1)
+  {
+    __HAL_RCC_SPI1_CLK_DISABLE();
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
+  }
 }
 
 /**
