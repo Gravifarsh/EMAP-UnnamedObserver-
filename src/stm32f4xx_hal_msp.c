@@ -133,7 +133,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 		gpioa.Mode = GPIO_MODE_AF_PP;
 		gpioa.Pin = GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
 		gpioa.Pull = GPIO_NOPULL;
-		gpioa.Speed = GPIO_SPEED_FREQ_HIGH;
+		gpioa.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
 		HAL_GPIO_Init(GPIOA, &gpioa);
 
 		gpioa.Mode = GPIO_MODE_OUTPUT_PP;

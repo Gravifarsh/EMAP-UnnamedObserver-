@@ -167,7 +167,7 @@ uint8_t sd_init(SPI_HandleTypeDef* hspi)
 	hspi->Init.CLKPolarity = SPI_POLARITY_LOW;
 	hspi->Init.CLKPhase = SPI_PHASE_1EDGE;
 	hspi->Init.NSS = SPI_NSS_SOFT;
-	hspi->Init.BaudRatePrescaler = SD_BAUD_RATE_PRESCALER_FAST;
+	hspi->Init.BaudRatePrescaler = 0x28;
 	hspi->Init.FirstBit = SPI_FIRSTBIT_MSB;
 	hspi->Init.TIMode = SPI_TIMODE_DISABLE;
 	hspi->Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
