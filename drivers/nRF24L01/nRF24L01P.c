@@ -6,6 +6,9 @@ HAL_StatusTypeDef HAL_nRF24L01P_Init(nRF24L01P *nRF)
 	/* ---- Local Vars. ---- */
 	uint8_t regValue;
 	HAL_StatusTypeDef retValue = HAL_OK;
+
+	HAL_nRF24L01P_CE_Low(nRF);
+
 	/* ---- Pre Process ---- */
 	if(HAL_nRF24L01P_PowerUP(nRF, nRF_ENABLE) != HAL_OK)
 	{
@@ -33,13 +36,15 @@ HAL_StatusTypeDef HAL_nRF24L01P_Init(nRF24L01P *nRF)
 	retValue |= HAL_nRF24L01P_SetDataRate(nRF, nRF->Data_Rate);
 	retValue |= HAL_nRF24L01P_SetRetransmissionCount(nRF, nRF->RetransmitCount);
 	retValue |= HAL_nRF24L01P_SetRetransmissionDelay(nRF, nRF->RetransmitDelay);
+	retValue |= HAL_nRF24L01P_TXRX(nRF, nRF->State);
+
 	
-	retValue |= HAL_nRF24L01P_DynACK(nRF, nRF_ENABLE);
-	retValue |= HAL_nRF24L01P_ACKPayload(nRF, nRF_ENABLE);
-	retValue |= HAL_nRF24L01P_DynPayload(nRF, nRF_ENABLE);
+	retValue |= HAL_nRF24L01P_DynACK(nRF, nRF_DISABLE);
+	retValue |= HAL_nRF24L01P_ACKPayload(nRF, nRF_DISABLE);
+	retValue |= HAL_nRF24L01P_DynPayload(nRF, nRF_DISABLE);
 	
 	retValue |= HAL_nRF24L01P_RXPipe(nRF, nRF_DATA_PIPE_0, nRF_ENABLE);
-	retValue |= HAL_nRF24L01P_DPLPipe(nRF, nRF_DATA_PIPE_0, nRF_ENABLE);
+	retValue |= HAL_nRF24L01P_DPLPipe(nRF, nRF_DATA_PIPE_0, nRF_DISABLE);
 	
 	retValue |= HAL_nRF24L01P_AutoACK(nRF, nRF_DATA_PIPE_0, nRF_ENABLE);
 	retValue |= HAL_nRF24L01P_AutoACK(nRF, nRF_DATA_PIPE_1, nRF_DISABLE);
@@ -50,8 +55,8 @@ HAL_StatusTypeDef HAL_nRF24L01P_Init(nRF24L01P *nRF)
 	
 	retValue |= HAL_nRF24L01P_ClearInterrupts(nRF);
 	
-	retValue |= HAL_nRF24L01P_TXRX(nRF, nRF->State);
 	retValue |= HAL_nRF24L01P_FlushRX(nRF);
+	retValue |= HAL_nRF24L01P_FlushTX(nRF);
 
 	nRF->Busy = 0;
 	nRF->regStatus = 0;
@@ -65,15 +70,52 @@ HAL_StatusTypeDef HAL_nRF24L01P_Init(nRF24L01P *nRF)
 
 HAL_StatusTypeDef HAL_nRF24L01P_IRQ_Handler(nRF24L01P *nRF)
 {
-	if(HAL_nRF24L01P_ReadRegister(nRF, nRF_STATUS, &nRF->regStatus) != HAL_OK)
+	/* ---- Local Vars. ---- */
+	uint8_t regStatus;
+	/* ---- Pre Process ---- */
+	if(HAL_nRF24L01P_ReadRegister(nRF, nRF_STATUS, &regStatus) != HAL_OK)
 	{
 		return HAL_ERROR;
 	}
-
-	if(nRF->regStatus & (0b111 << 4)){
+	//trace_printf("INTERRUPT WITH STATUS %d\n", regStatus);
+	/* ---- RX FIFO Int.---- */
+	if((regStatus & (1 << 6)) != 0)
+	{
+		uint8_t regFIFO_Status;
+		HAL_nRF24L01P_CE_Low(nRF);
+		do {
+		HAL_nRF24L01P_ReadRXPayload(nRF, nRF->RX_Buffer);
+		regStatus |= (1 << 6);
+		HAL_nRF24L01P_WriteRegister(nRF, nRF_STATUS, &regStatus);
+		HAL_nRF24L01P_ReadRegister(nRF, nRF_FIFO_STATUS, &regFIFO_Status);
+		} while((regFIFO_Status & 0x01) == 0x00);
+		//HAL_nRF24L01P_CE_High(nRF);
+	}
+	/* ---- TX Sent Int.---- */
+	if((regStatus & (1 << 5)) != 0)
+	{
+		HAL_nRF24L01P_CE_Low(nRF);
+		regStatus |= (1 << 5);
+		//HAL_nRF24L01P_TXRX(nRF, nRF_STATE_RX);
+		HAL_nRF24L01P_WriteRegister(nRF, nRF_STATUS, &regStatus);
+		//HAL_nRF24L01P_CE_High(nRF);
 		nRF->Busy = 0;
 	}
+	/* ---- MAXReTX Int.---- */
+	if((regStatus & (1 << 4)) != 0)
+	{
+		regStatus |= (1 << 4);
 
+		HAL_nRF24L01P_FlushTX(nRF);
+		//HAL_nRF24L01P_PowerUP(nRF, nRF_DISABLE);	// bi kapatip açalim da düzelsin...
+		//HAL_nRF24L01P_PowerUP(nRF, nRF_ENABLE);
+
+		HAL_nRF24L01P_CE_Low(nRF);
+		//HAL_nRF24L01P_TXRX(nRF, nRF_STATE_RX);
+		HAL_nRF24L01P_WriteRegister(nRF, nRF_STATUS, &regStatus);
+		//HAL_nRF24L01P_CE_High(nRF);
+		nRF->Busy = 0;
+	}
 	return HAL_OK;
 }
 
@@ -161,19 +203,10 @@ HAL_StatusTypeDef HAL_nRF24L01P_ReceivePacket(nRF24L01P *nRF, uint8_t *Data)
 
 	while(nRF->Busy);	// TODO: Add *timeout* functionality
 	
-	if((nRF->regStatus & (1 << 6)) != 0)
+	for(uint8_t i = 0; i < nRF->PayloadWidth; i++)
 	{
-		HAL_nRF24L01P_CE_Low(nRF);
-		uint8_t regFIFO_Status;
-		do {
-			HAL_nRF24L01P_ReadRXPayload(nRF, Data);
-			nRF->regStatus |= (1 << 6);
-			HAL_nRF24L01P_WriteRegister(nRF, nRF_STATUS, &nRF->regStatus);
-			HAL_nRF24L01P_ReadRegister(nRF, nRF_FIFO_STATUS, &regFIFO_Status);
-		} while((regFIFO_Status & 0x01) == 0x00);
-		HAL_nRF24L01P_CE_High(nRF);
+		Data[i] = nRF->RX_Buffer[i];
 	}
-
 	return HAL_OK;
 }
 
@@ -181,33 +214,13 @@ HAL_StatusTypeDef HAL_nRF24L01P_TransmitPacket(nRF24L01P *nRF, uint8_t *Data)
 {
 	nRF->Busy = 1;
 
-	HAL_nRF24L01P_CE_Low(nRF);
 	HAL_nRF24L01P_TXRX(nRF, nRF_STATE_TX);
 	HAL_nRF24L01P_WriteTXPayload(nRF, Data);
 	HAL_nRF24L01P_CE_High(nRF);
 
 	while(nRF->Busy);	// TODO: Add *timeout* functionality
 
-	/* ---- TX Sent Int.---- */
-	if((nRF->regStatus & (1 << 5)))
-	{
-		HAL_nRF24L01P_CE_Low(nRF);
-		HAL_nRF24L01P_TXRX(nRF, nRF_STATE_RX);
-		HAL_nRF24L01P_WriteRegister(nRF, nRF_STATUS, &nRF->regStatus);
-		HAL_nRF24L01P_CE_High(nRF);
-	}
-	/* ---- MAXReTX Int.---- */
-	if((nRF->regStatus & (1 << 4)) != 0)
-	{
-		HAL_nRF24L01P_FlushTX(nRF);
-		HAL_nRF24L01P_PowerUP(nRF, nRF_DISABLE);	// bi kapatip açalim da düzelsin...
-		HAL_nRF24L01P_PowerUP(nRF, nRF_ENABLE);
-
-		HAL_nRF24L01P_CE_Low(nRF);
-		HAL_nRF24L01P_TXRX(nRF, nRF_STATE_RX);
-		HAL_nRF24L01P_WriteRegister(nRF, nRF_STATUS, &nRF->regStatus);
-		HAL_nRF24L01P_CE_High(nRF);
-	}
+	//HAL_nRF24L01P_CE_Low(nRF);
 
 	return HAL_OK;
 }

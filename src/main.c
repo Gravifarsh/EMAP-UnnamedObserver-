@@ -46,6 +46,11 @@
 static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
 static StaticTask_t	_IMUTaskObj;
 
+//	параметры RF_task
+#define RF_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
+static StackType_t	_RFTaskStack[RF_TASK_STACK_SIZE];
+static StaticTask_t	_RFTaskObj;
+
 I2C_HandleTypeDef 	i2c_IMU_1;
 I2C_HandleTypeDef 	i2c_IMU_2;
 rscs_bmp280_descriptor_t * IMU_bmp280_1;
@@ -106,20 +111,13 @@ main(int argc, char* argv[])
 	memset(&system_prev_state, 	0x00, sizeof(system_prev_state));
 
 	*/
-	//xTaskCreateStatic(IMU_Task, 	"IMU", 		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack, 	&_IMUTaskObj);
-
-	//IMU_Init();
-
-	//HAL_Delay(300);
-
-	//vTaskStartScheduler();
+	xTaskCreateStatic(RF_Task, 	"RF", RF_TASK_STACK_SIZE, 	NULL, 1, _RFTaskStack, 	&_RFTaskObj);
 
 	nRF_Init();
 
-	while (1)
-    {
-		volatile int x = 0;
-    }
+	HAL_Delay(300);
+
+	vTaskStartScheduler();
 }
 
 #pragma GCC diagnostic pop

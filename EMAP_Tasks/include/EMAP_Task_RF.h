@@ -11,5 +11,6 @@
 #include "EMAPConfig.h"
 
 void nRF_Init();
+void RF_Task();
 
 #endif /* INCLUDE_EMAP_TASK_RF_H_ */
