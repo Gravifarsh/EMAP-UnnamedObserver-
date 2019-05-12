@@ -12,7 +12,7 @@
 
 #include "diag/Trace.h"
 
-const uint8_t RXAddr[5] = {0x7E, 0x7E, 0x7E, 0x7E, 0x7E};
+const uint8_t RXAddr[5] = {0xE7, 0xE7, 0xE7, 0xE7, 0xE7};
 const uint8_t TXAddr[5] = {0xE7, 0xE7, 0xE7, 0xE7, 0xE7};
 
 uint8_t RXBuffer[32];
@@ -66,7 +66,7 @@ void SPI_Init(void)
 
 void RF_Task() {
 	for(;;) {
-		//vTaskDelay(10 / portTICK_RATE_MS);
+		//vTaskDelay(100 / portTICK_RATE_MS);
 
 		uint8_t tmp;
 		HAL_StatusTypeDef err;
@@ -74,15 +74,16 @@ void RF_Task() {
 		//trace_printf("READ REG ERR %d\n", err);
 		//trace_printf("STATUS REG BEFORE %d\n", tmp);
 
-		err = HAL_nRF24L01P_ReadRegister(&nRF24, nRF_CONFIG, &tmp);
+		//err = HAL_nRF24L01P_ReadRegister(&nRF24, nRF_CONFIG, &tmp);
 		//trace_printf("READ REG ERR %d\n", err);
 		//trace_printf("CONFIG REG BEFORE %d\n", tmp);
 
 		uint8_t msg[32] = {0};
 		for(uint8_t i = 0; i < 32; i++)
 			msg[i] = i;
-		//HAL_nRF24L01P_TransmitPacketNonExt(&nRF24, (uint8_t*)msg);
-		HAL_nRF24L01P_TransmitPacket(&nRF24, msg);
+		HAL_nRF24L01P_TransmitPacketNonExt(&nRF24, (uint8_t*)msg);
+		//trace_puts("T");
+		//HAL_nRF24L01P_TransmitPacket(&nRF24, msg);
 	}
 }
 
@@ -95,7 +96,7 @@ void nRF_Init(){
 	nRF24.ADDR_Width = nRF_ADDR_WIDTH_5;
 	nRF24.Data_Rate = nRF_DATA_RATE_1MBPS;
 	nRF24.TX_Power = nRF_TX_PWR_0dBm;
-	nRF24.State = nRF_STATE_RX;
+	nRF24.State = nRF_STATE_TX;
 
 	nRF24.RF_Channel = 73;
 	nRF24.PayloadWidth = nRF_RXPW_32BYTES;
@@ -120,6 +121,10 @@ void nRF_Init(){
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if(GPIO_Pin == GPIO_PIN_2) {
-		HAL_nRF24L01P_IRQ_Handler(&nRF24);
+		//HAL_nRF24L01P_IRQ_Handler(&nRF24);
 	}
+}
+
+void EXTI2_IRQHandler(){
+	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
 }

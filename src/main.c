@@ -111,6 +111,28 @@ main(int argc, char* argv[])
 	memset(&system_prev_state, 	0x00, sizeof(system_prev_state));
 
 	*/
+
+	GPIO_InitTypeDef gpio;
+
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+
+	gpio.Mode = GPIO_MODE_OUTPUT_PP;
+	gpio.Pin = GPIO_PIN_3;
+	gpio.Pull = GPIO_NOPULL;
+	gpio.Speed = GPIO_SPEED_FREQ_HIGH;
+
+	HAL_GPIO_Init(GPIOC, &gpio);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
+
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+
+	gpio.Pin = GPIO_PIN_0;
+
+	HAL_GPIO_Init(GPIOA, &gpio);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
+
+
+
 	xTaskCreateStatic(RF_Task, 	"RF", RF_TASK_STACK_SIZE, 	NULL, 1, _RFTaskStack, 	&_RFTaskObj);
 
 	nRF_Init();

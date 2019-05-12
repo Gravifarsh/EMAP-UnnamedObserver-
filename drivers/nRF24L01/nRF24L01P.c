@@ -39,12 +39,12 @@ HAL_StatusTypeDef HAL_nRF24L01P_Init(nRF24L01P *nRF)
 	retValue |= HAL_nRF24L01P_TXRX(nRF, nRF->State);
 
 	
-	retValue |= HAL_nRF24L01P_DynACK(nRF, nRF_DISABLE);
-	retValue |= HAL_nRF24L01P_ACKPayload(nRF, nRF_DISABLE);
-	retValue |= HAL_nRF24L01P_DynPayload(nRF, nRF_DISABLE);
+	retValue |= HAL_nRF24L01P_DynACK(nRF, nRF_ENABLE);
+	retValue |= HAL_nRF24L01P_ACKPayload(nRF, nRF_ENABLE);
+	retValue |= HAL_nRF24L01P_DynPayload(nRF, nRF_ENABLE);
 	
 	retValue |= HAL_nRF24L01P_RXPipe(nRF, nRF_DATA_PIPE_0, nRF_ENABLE);
-	retValue |= HAL_nRF24L01P_DPLPipe(nRF, nRF_DATA_PIPE_0, nRF_DISABLE);
+	retValue |= HAL_nRF24L01P_DPLPipe(nRF, nRF_DATA_PIPE_0, nRF_ENABLE);
 	
 	retValue |= HAL_nRF24L01P_AutoACK(nRF, nRF_DATA_PIPE_0, nRF_ENABLE);
 	retValue |= HAL_nRF24L01P_AutoACK(nRF, nRF_DATA_PIPE_1, nRF_DISABLE);
@@ -951,8 +951,4 @@ void HAL_nRF24L01P_CE_High(nRF24L01P *nRF)
 void HAL_nRF24L01P_CE_Low(nRF24L01P *nRF)
 {
 	HAL_GPIO_WritePin(nRF->nRF_CE_GPIO_PORT, nRF->nRF_CE_GPIO_PIN, GPIO_PIN_RESET);
-}
-
-void EXTI2_IRQHandler(){
-	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
 }
