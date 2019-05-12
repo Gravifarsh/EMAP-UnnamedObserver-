@@ -9,6 +9,7 @@
 #include "stm32f4xx_hal_i2c.h"
 #include "stm32f4xx_hal_spi.h"
 
+#include "nRF24L01P.h"
 #include "bmp280.h"
 #include "nRF24L01P.h"
 
@@ -18,16 +19,31 @@
 //Using modules (1 using / 0 not using)
 #define USE_MPU9255				1
 #define USE_EXTERNAL_BMP280		0
-#define USE_SD					0
+#define USE_SD					1
 #define USE_GPS					0
 #define USE_nRF24L01			0
+
+#define	PACKET_LEN_SYS_STATE_ZERO	70
+#define PACKET_LEN_SYS_STATE		14
+#define PACKET_LEN_DATA_MPU			47
+#define	PACKET_LEN_DATA_BMP			19
 
 /*****STRUCTURES*****/
 typedef enum
 {
 	EMAP_ERROR_NONE = 0,
 	EMAP_ERROR_NO_USE = -10
-}EMAP_errors;
+}EMAP_errors_t;
+
+typedef enum
+{
+	EMAP_State_Calibration =	0,
+	EMAP_State_Ready_To_Load =	1,
+	EMAP_State_Loaded = 		2,
+	EMAP_State_Rising =			3,
+	EMAP_State_Falling =		4,
+	EMAP_State_Landed =			5
+}EMAP_States_t;
 
 typedef struct
 {
@@ -45,22 +61,24 @@ typedef struct
 typedef struct
 {
 	float accel[3];
+	float compass[3];
 	union
 	{
-		float gyro[3];
-		float compass[3];
-	};
+	float gyro[3];
 	float quaternion[4];
+	};
 } data_MPU9255_t;
 
 typedef struct
 {
+	uint8_t	GlobalState;
 	uint8_t MPU9255_1;
 	uint8_t BMP280_1;
 	uint8_t MPU9255_2;
 	uint8_t BMP280_2;
 	uint8_t SD;
-	uint8_t time;
+	uint8_t	nRF;
+	float time;
 } system_state_t;
 
 typedef struct

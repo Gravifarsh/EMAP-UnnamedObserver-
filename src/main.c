@@ -40,7 +40,11 @@
 #include "EMAPConfig.h"
 #include "EMAP_Task_IMU.h"
 #include "EMAP_Task_RF.h"
+#include "EMAP_Task_SD.h"
 
+#define SD_TASK_STACK_SIZE	(60*configMINIMAL_STACK_SIZE)
+static StackType_t	_SDTaskStack[SD_TASK_STACK_SIZE];
+static StaticTask_t	_SDTaskObj;
 //	параметры IMU_task
 #define IMU_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
 static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
@@ -53,6 +57,7 @@ static StaticTask_t	_RFTaskObj;
 
 I2C_HandleTypeDef 	i2c_IMU_1;
 I2C_HandleTypeDef 	i2c_IMU_2;
+SPI_HandleTypeDef	spi_nRF24L01;
 rscs_bmp280_descriptor_t * IMU_bmp280_1;
 rscs_bmp280_descriptor_t * IMU_bmp280_2;
 
@@ -86,6 +91,7 @@ system_state_t 	system_prev_state;
 
 // Sample pragmas to cope with warnings. Please note the related line at
 // the end of this function, used to pop the compiler diagnostics status.
+//#pragma GCC optimize("Ofast, unroll-all-loops")
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
@@ -109,10 +115,15 @@ main(int argc, char* argv[])
 	memset(&data_prev_MPU9255_2, 	0x00, sizeof(data_prev_MPU9255_2));
 	memset(&data_prev_MPU9255_isc,	0x00, sizeof(data_prev_MPU9255_isc));
 	memset(&system_prev_state, 	0x00, sizeof(system_prev_state));
-
 	*/
 
 	GPIO_InitTypeDef gpio;
+
+	//xTaskCreateStatic(SD_Task,	"SD",	SD_TASK_STACK_SIZE,		NULL, 1, _SDTaskStack, 	&_SDTaskObj);
+	//xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
+
+	//IMU_Init();
+	//SD_Init();
 
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 
@@ -130,8 +141,6 @@ main(int argc, char* argv[])
 
 	HAL_GPIO_Init(GPIOA, &gpio);
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
-
-
 
 	xTaskCreateStatic(RF_Task, 	"RF", RF_TASK_STACK_SIZE, 	NULL, 1, _RFTaskStack, 	&_RFTaskObj);
 

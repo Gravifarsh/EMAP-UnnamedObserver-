@@ -101,6 +101,7 @@ void nRF_Init(){
 	nRF24.RF_Channel = 73;
 	nRF24.PayloadWidth = nRF_RXPW_32BYTES;
 	nRF24.RetransmitCount = nRF_RETX_COUNT_15;
+
 	nRF24.RetransmitDelay = nRF_RETX_DELAY_1000uS;
 
 	nRF24.RX_Address = (uint8_t *)RXAddr;
