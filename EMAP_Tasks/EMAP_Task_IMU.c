@@ -49,7 +49,9 @@ void IMU_Init()
 
 	system_state.BMP280_1 = bmp280_init(&i2c_IMU_1, &IMU_bmp280_1);
 	system_state.BMP280_2 = bmp280_init(&i2c_IMU_2, &IMU_bmp280_2);
-	trace_printf("MPU1: %d\nMPU2: %d\nBMP1: %d\nBMP2: %d\n", system_state.MPU9255_1, system_state.MPU9255_2, system_state.BMP280_1, system_state.BMP280_2);
+
+	trace_printf("MPU1: %d\nMPU2: %d\nBMP1: %d\nBMP2: %d\n",
+			system_state.MPU9255_1, system_state.MPU9255_2, system_state.BMP280_1, system_state.BMP280_2);
 
 
 }
@@ -344,8 +346,8 @@ void IMU_Task()
 	{
 		for(;;)
 		{
-			vTaskDelay(10/portTICK_RATE_MS);
-//			trace_printf("IMU here\n");
+			trace_puts("IMU TASK");
+			vTaskDelay(10 / portTICK_RATE_MS);
 
 			updateAll();
 			//trace_printf("Pressure1: %d.%d\nTemp1: %d.%d\n", INTIFY(data_BMP280_1.pressure), INTIFY(data_BMP280_1.temperature));
@@ -359,6 +361,7 @@ void IMU_Task()
 	else
 	{
 		trace_puts("IMU_Task shut down!");
+		trace_printf("MPU1: %d\nMPU2: %d\nBMP1: %d\nBMP2: %d\n", system_state.MPU9255_1, system_state.MPU9255_2, system_state.BMP280_1, system_state.BMP280_2);
 		vTaskDelete(NULL);
 	}
 }

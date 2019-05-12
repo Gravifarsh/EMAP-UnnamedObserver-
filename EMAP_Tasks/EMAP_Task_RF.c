@@ -64,26 +64,62 @@ void SPI_Init(void)
 	HAL_SPI_Init(&spi_nRF24L01);
 }
 
+void send(uint8_t* data, size_t size) {
+	size_t pos = 0;
+
+	while(pos < size) {
+		nRF24.PayloadWidth = (size - pos) > 32 ? 32 : size - pos;
+		HAL_nRF24L01P_TransmitPacketNonExt(&nRF24, data + pos);
+		pos += 32;
+	}
+}
+
 void RF_Task() {
+	uint8_t buffer[RF_TX_BUFFER_SIZE];
 	for(;;) {
-		//vTaskDelay(100 / portTICK_RATE_MS);
+		trace_puts("RF TASK");
+		vTaskDelay(10 / portTICK_RATE_MS);
 
-		uint8_t tmp;
-		HAL_StatusTypeDef err;
-		err = HAL_nRF24L01P_ReadRegister(&nRF24, nRF_STATUS, &tmp);
-		//trace_printf("READ REG ERR %d\n", err);
-		//trace_printf("STATUS REG BEFORE %d\n", tmp);
 
-		//err = HAL_nRF24L01P_ReadRegister(&nRF24, nRF_CONFIG, &tmp);
-		//trace_printf("READ REG ERR %d\n", err);
-		//trace_printf("CONFIG REG BEFORE %d\n", tmp);
+		buffer[0] = 0xFA;
+taskENTER_CRITICAL();
+		memcpy(buffer + 1, &data_BMP280_1, sizeof(data_BMP280_1));
+taskEXIT_CRITICAL();
+		buffer[sizeof(data_BMP280_1) + 1] = 0xFA;
 
-		uint8_t msg[32] = {0};
-		for(uint8_t i = 0; i < 32; i++)
-			msg[i] = i;
-		HAL_nRF24L01P_TransmitPacketNonExt(&nRF24, (uint8_t*)msg);
-		//trace_puts("T");
-		//HAL_nRF24L01P_TransmitPacket(&nRF24, msg);
+		send(buffer, sizeof(data_BMP280_1) + 2);
+
+		buffer[0] = 0xFB;
+taskENTER_CRITICAL();
+		memcpy(buffer + 1, &data_BMP280_2, sizeof(data_BMP280_2));
+taskEXIT_CRITICAL();
+		buffer[sizeof(data_BMP280_2) + 1] = 0xFB;
+
+		send(buffer, sizeof(data_BMP280_2) + 2);
+
+		buffer[0] = 0xFC;
+taskENTER_CRITICAL();
+		memcpy(buffer + 1, &data_MPU9255_1, sizeof(data_MPU9255_1));
+taskEXIT_CRITICAL();
+		buffer[sizeof(data_MPU9255_1) + 1] = 0xFC;
+
+		send(buffer, sizeof(data_MPU9255_1) + 2);
+
+		buffer[0] = 0xFB;
+taskENTER_CRITICAL();
+		memcpy(buffer + 1, &data_MPU9255_2, sizeof(data_MPU9255_2));
+taskEXIT_CRITICAL();
+		buffer[sizeof(data_MPU9255_2) + 1] = 0xFB;
+
+		send(buffer, sizeof(data_MPU9255_2) + 2);
+
+		buffer[0] = 0xFD;
+taskENTER_CRITICAL();
+		memcpy(buffer + 1, &system_state, sizeof(system_state));
+taskEXIT_CRITICAL();
+		buffer[sizeof(system_state) + 1] = 0xFD;
+
+		send(buffer, sizeof(system_state) + 2);
 	}
 }
 
@@ -114,15 +150,12 @@ void nRF_Init(){
 	nRF24.nRF_CE_GPIO_PORT = GPIOA;
 	nRF24.nRF_CE_GPIO_PIN = GPIO_PIN_3;
 
-	if(HAL_nRF24L01P_Init(&nRF24) != HAL_OK)
-		trace_printf("FAIL nRF INIT\n");
-	else
-		trace_printf("OK nRF INIT\n");
+	trace_printf("nRF: %d\n", HAL_nRF24L01P_Init(&nRF24));
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if(GPIO_Pin == GPIO_PIN_2) {
-		//HAL_nRF24L01P_IRQ_Handler(&nRF24);
+		HAL_nRF24L01P_IRQ_Handler(&nRF24);
 	}
 }
 

@@ -45,7 +45,7 @@ void writeSysStateZero()
 
 	trace_puts("Sending zero\n");
 	//nRF24L01_send(&spi_nRF24L01, buffer, PACKET_LEN_SYS_STATE_ZERO, NEED_ACK);
-//	dump(&stream_file, buffer, PACKET_LEN_SYS_STATE_ZERO);
+	dump(&stream_file, buffer, PACKET_LEN_SYS_STATE_ZERO);
 }
 
 void writeSysState()
@@ -61,7 +61,7 @@ taskENTER_CRITICAL();
 	buffer[PACKET_LEN_SYS_STATE - 1] = 0xFF;
 taskEXIT_CRITICAL();
 
-//	dump(&stream_file, buffer, PACKET_LEN_SYS_STATE);
+	dump(&stream_file, buffer, PACKET_LEN_SYS_STATE);
 }
 
 void writeDataMPU(I2C_HandleTypeDef * hi2c)
@@ -87,7 +87,7 @@ taskEXIT_CRITICAL();
 
 	trace_puts("Sending IMU\n");
 	//nRF24L01_send(&spi_nRF24L01, buffer, PACKET_LEN_DATA_MPU, NEED_ACK);
-//	dump(&stream_file, buffer, PACKET_LEN_DATA_MPU);
+	dump(&stream_file, buffer, PACKET_LEN_DATA_MPU);
 }
 
 void writeDataIsc()
@@ -105,7 +105,7 @@ taskEXIT_CRITICAL();
 
 	trace_puts("Sending ISC\n");
 	//nRF24L01_send(&spi_nRF24L01, buffer, PACKET_LEN_DATA_MPU, NEED_ACK);
-//	dump(&stream_file, buffer, PACKET_LEN_DATA_MPU);
+	dump(&stream_file, buffer, PACKET_LEN_DATA_MPU);
 }
 
 void writeDataBMP()
@@ -123,7 +123,7 @@ taskEXIT_CRITICAL();
 
 	trace_puts("Sending BMP1\n");
 	//nRF24L01_send(&spi_nRF24L01, buffer, PACKET_LEN_DATA_BMP, NEED_ACK);
-//	dump(&stream_file, buffer, PACKET_LEN_DATA_BMP);
+	dump(&stream_file, buffer, PACKET_LEN_DATA_BMP);
 
 taskENTER_CRITICAL();
 	buffer[1] = 0xF6;
@@ -132,7 +132,7 @@ taskEXIT_CRITICAL();
 
 	trace_puts("Sending BMP1\n");
 	//nRF24L01_send(&spi_nRF24L01, buffer, PACKET_LEN_DATA_BMP, NEED_ACK);
-//	dump(&stream_file, buffer, PACKET_LEN_DATA_BMP);
+	dump(&stream_file, buffer, PACKET_LEN_DATA_BMP);
 }
 
 void SD_Task()

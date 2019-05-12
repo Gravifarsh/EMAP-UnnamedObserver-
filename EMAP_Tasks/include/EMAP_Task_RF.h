@@ -10,6 +10,8 @@
 
 #include "EMAPConfig.h"
 
+#define RF_TX_BUFFER_SIZE (100)
+
 void nRF_Init();
 void RF_Task();
 
