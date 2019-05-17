@@ -125,6 +125,14 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 	if (hspi->Instance == SPI1) {
 		__SPI1_CLK_ENABLE();
 		__GPIOA_CLK_ENABLE();
+		__GPIOC_CLK_ENABLE();
+
+		GPIO_InitTypeDef gpioc;
+		gpioc.Mode = GPIO_MODE_OUTPUT_PP;
+		gpioc.Pin = GPIO_PIN_3;
+		gpioc.Pull = GPIO_NOPULL;
+		gpioc.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+		HAL_GPIO_Init(GPIOC,&gpioc);
 
 		GPIO_InitTypeDef gpioa;
 		gpioa.Alternate = GPIO_AF5_SPI1;

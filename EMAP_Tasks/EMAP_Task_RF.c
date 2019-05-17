@@ -77,8 +77,8 @@ void send(uint8_t* data, size_t size) {
 void RF_Task() {
 	uint8_t buffer[RF_TX_BUFFER_SIZE];
 	for(;;) {
-		trace_puts("RF TASK");
-		vTaskDelay(10 / portTICK_RATE_MS);
+		//trace_puts("RF TASK");
+		vTaskDelay(100 / portTICK_RATE_MS);
 
 
 		buffer[0] = 0xFA;

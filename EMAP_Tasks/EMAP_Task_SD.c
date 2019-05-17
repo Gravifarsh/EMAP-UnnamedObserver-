@@ -15,6 +15,8 @@
 #include "EMAP_Task_SD.h"
 #include "dump.h"
 
+#include "EMAP_Task_RF.h"
+
 #define NEED_ACK	false
 
 static dump_channel_state_t stream_file;
@@ -36,124 +38,116 @@ taskEXIT_CRITICAL();
 
 void writeSysStateZero()
 {
-	uint8_t buffer[PACKET_LEN_SYS_STATE_ZERO];
+	uint8_t buffer[sizeof(system_state_zero_t) + 2];
 
-	buffer[0] = 0xFF;
-	buffer[1] = 0xF0;
-	memcpy(&buffer[2], &system_state_zero, sizeof(system_state_zero));
-	buffer[PACKET_LEN_SYS_STATE_ZERO - 1] = 0xFF;
+	buffer[0] = 0xF9;
+	memcpy(&buffer[2], &system_state_zero, sizeof(system_state_zero_t));
+	buffer[sizeof(system_state_zero_t) + 1] = 0xF9;
 
-	trace_puts("Sending zero\n");
+	//trace_puts("Sending zero");
 	//nRF24L01_send(&spi_nRF24L01, buffer, PACKET_LEN_SYS_STATE_ZERO, NEED_ACK);
-	dump(&stream_file, buffer, PACKET_LEN_SYS_STATE_ZERO);
+	dump(&stream_file, buffer, sizeof(system_state_zero_t) + 2);
+	send(buffer, sizeof(system_state_zero_t) + 2);
 }
 
 void writeSysState()
 {
-	uint8_t buffer[PACKET_LEN_SYS_STATE];
+	uint8_t buffer[sizeof(system_state_t) + 2];
 
 taskENTER_CRITICAL();
 	system_state.SD = stream_file.res;
 
 	buffer[0] = 0xFF;
-	buffer[1] = 0xF1;
-	memcpy(&buffer[2], &system_state, sizeof(system_state));
-	buffer[PACKET_LEN_SYS_STATE - 1] = 0xFF;
+	memcpy(buffer + 1, &system_state, sizeof(system_state_t));
+	buffer[sizeof(system_state_t) + 1] = 0xFF;
 taskEXIT_CRITICAL();
 
-	dump(&stream_file, buffer, PACKET_LEN_SYS_STATE);
+	dump(&stream_file, buffer, sizeof(system_state_t) + 2);
+	send(buffer, sizeof(system_state_t) + 2);
 }
 
 void writeDataMPU(I2C_HandleTypeDef * hi2c)
 {
-	uint8_t buffer[PACKET_LEN_DATA_MPU];
+	uint8_t buffer[sizeof(data_MPU9255_t) + 2];
 
 taskENTER_CRITICAL();
-	float time = (float)HAL_GetTick() / 1000;
-	buffer[0] = 0xFF;
-	memcpy(&buffer[2], &time, sizeof(float));
 	if(hi2c->Instance == I2C1)
 	{
-		buffer[1] = 0xF2;
-		memcpy(&buffer[6], &data_MPU9255_1, sizeof(data_MPU9255_1));
+		buffer[0] = 0xFA;
+		memcpy(buffer + 1, &data_MPU9255_1, sizeof(data_MPU9255_t));
+		buffer[sizeof(data_MPU9255_1) + 1] = 0xFA;
 	}
 	else
 	{
-		buffer[1] = 0xF3;
-		memcpy(&buffer[6], &data_MPU9255_2, sizeof(data_MPU9255_2));
+		buffer[0] = 0xFB;
+		memcpy(buffer + 1, &data_MPU9255_2, sizeof(data_MPU9255_t));
+		buffer[sizeof(data_MPU9255_2) + 1] = 0xFB;
 	}
-	buffer[PACKET_LEN_DATA_MPU - 1] = 0xFF;
 taskEXIT_CRITICAL();
 
-	trace_puts("Sending IMU\n");
-	//nRF24L01_send(&spi_nRF24L01, buffer, PACKET_LEN_DATA_MPU, NEED_ACK);
-	dump(&stream_file, buffer, PACKET_LEN_DATA_MPU);
+	//trace_puts("Sending IMU");
+	dump(&stream_file, buffer, sizeof(data_MPU9255_t) + 2);
+	send(buffer, sizeof(data_MPU9255_t) + 2);
 }
 
 void writeDataIsc()
 {
-	uint8_t buffer[PACKET_LEN_DATA_MPU];
+	uint8_t buffer[sizeof(data_MPU9255_t) + 2];
 
 taskENTER_CRITICAL();
-	float time = (float)HAL_GetTick() / 1000;
-	buffer[0] = 0xFF;
-	buffer[1] = 0xF4;
-	memcpy(&buffer[2], &time, sizeof(float));
-	memcpy(&buffer[6], &data_MPU9255_isc, sizeof(data_MPU9255_isc));
-	buffer[PACKET_LEN_DATA_MPU - 1] = 0xFF;
+	buffer[0] = 0xFC;
+	memcpy(buffer + 1, &data_MPU9255_isc, sizeof(data_MPU9255_t));
+	buffer[sizeof(data_MPU9255_t) + 1] = 0xFC;
 taskEXIT_CRITICAL();
 
-	trace_puts("Sending ISC\n");
+	//trace_puts("Sending ISC");
 	//nRF24L01_send(&spi_nRF24L01, buffer, PACKET_LEN_DATA_MPU, NEED_ACK);
-	dump(&stream_file, buffer, PACKET_LEN_DATA_MPU);
+	dump(&stream_file, buffer, sizeof(data_MPU9255_t) + 2);
+	send(buffer, sizeof(data_MPU9255_t) + 2);
 }
 
 void writeDataBMP()
 {
-	uint8_t buffer[PACKET_LEN_DATA_BMP];
+	uint8_t buffer[sizeof(data_BMP280_t) + 2];
 
 taskENTER_CRITICAL();
-	float time = (float)HAL_GetTick() / 1000;
-	buffer[0] = 0xFF;
-	buffer[1] = 0xF5;
-	memcpy(&buffer[2], &time, sizeof(float));
-	memcpy(&buffer[6], &data_BMP280_1, sizeof(data_BMP280_1));
-	buffer[PACKET_LEN_DATA_BMP - 1] = 0xFF;
+	buffer[0] = 0xFD;
+	memcpy(buffer + 1, &data_BMP280_1, sizeof(data_BMP280_t));
+	buffer[sizeof(data_BMP280_t) + 1] = 0xFD;
 taskEXIT_CRITICAL();
 
-	trace_puts("Sending BMP1\n");
-	//nRF24L01_send(&spi_nRF24L01, buffer, PACKET_LEN_DATA_BMP, NEED_ACK);
-	dump(&stream_file, buffer, PACKET_LEN_DATA_BMP);
+	//trace_puts("Sending BMP1");
+	dump(&stream_file, buffer, sizeof(data_BMP280_t) + 2);
+	send(buffer, sizeof(data_BMP280_t) + 2);
 
 taskENTER_CRITICAL();
-	buffer[1] = 0xF6;
-	memcpy(&buffer[6], &data_BMP280_1, sizeof(data_BMP280_1));
+	buffer[0] = 0xFE;
+	memcpy(buffer + 1, &data_BMP280_2, sizeof(data_BMP280_t));
+	buffer[sizeof(data_BMP280_t) + 1] = 0xFE;
 taskEXIT_CRITICAL();
 
-	trace_puts("Sending BMP1\n");
-	//nRF24L01_send(&spi_nRF24L01, buffer, PACKET_LEN_DATA_BMP, NEED_ACK);
-	dump(&stream_file, buffer, PACKET_LEN_DATA_BMP);
+	//trace_puts("Sending BMP1");
+	dump(&stream_file, buffer, sizeof(data_BMP280_t) + 2);
+	send(buffer, sizeof(data_BMP280_t) + 2);
 }
 
 void SD_Task()
 {
-	_Bool isZeroWrote = false;
+	bool isZeroWrote = false;
 
-	/*
+
 	if(stream_file.file_opened == false)
 	{
 		trace_printf("SD_Task Shut Down!\n");
 		vTaskDelete(NULL);
 	}
-	*/
 
-	//trace_printf("SD State: %d\n", system_state.SD);
-	//trace_printf("nRF State: %d\n", system_state.nRF);
+	trace_printf("SD State: %d\n", system_state.SD);
 
 	for(;;)
 	{
+		//trace_puts("SD TASK");
 		vTaskDelay(100/portTICK_RATE_MS);
-//		trace_printf("SD here\n");
 
 		if(isZeroWrote)
 		{
@@ -165,7 +159,7 @@ void SD_Task()
 		}
 		else
 		{
-			//if(system_state_zero.pressure)
+			if(system_state_zero.pressure)
 			{
 				writeSysStateZero();
 				isZeroWrote = true;

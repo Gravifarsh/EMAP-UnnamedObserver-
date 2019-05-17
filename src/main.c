@@ -102,24 +102,13 @@ system_state_t 	system_prev_state;
 int
 main(int argc, char* argv[])
 {
-	GPIO_InitTypeDef gpio;
-	/* SD SS */
-	__HAL_RCC_GPIOC_CLK_ENABLE();
-
-	gpio.Mode = GPIO_MODE_OUTPUT_PP;
-	gpio.Pin = GPIO_PIN_3;
-	gpio.Pull = GPIO_NOPULL;
-	gpio.Speed = GPIO_SPEED_FREQ_HIGH;
-
-	HAL_GPIO_Init(GPIOC, &gpio);
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
-
-
 	/* FIRERISER */
+	GPIO_InitTypeDef gpio;
 	__HAL_RCC_GPIOA_CLK_ENABLE();
-
+	gpio.Mode = GPIO_MODE_OUTPUT_PP;
+	gpio.Pull = GPIO_PULLDOWN;
+	gpio.Speed = GPIO_SPEED_FREQ_HIGH;
 	gpio.Pin = GPIO_PIN_0;
-
 	HAL_GPIO_Init(GPIOA, &gpio);
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
 
@@ -140,12 +129,13 @@ main(int argc, char* argv[])
 	memset(&system_prev_state, 	0x00, sizeof(system_prev_state));
 
 	/* CREATING TASKS */
-	//xTaskCreateStatic(SD_Task,	"SD",	SD_TASK_STACK_SIZE,		NULL, 1, _SDTaskStack, 	&_SDTaskObj);
+	xTaskCreateStatic(SD_Task,	"SD",	SD_TASK_STACK_SIZE,		NULL, 1, _SDTaskStack, 	&_SDTaskObj);
 	xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
-	xTaskCreateStatic(RF_Task, 	"RF", RF_TASK_STACK_SIZE, 	NULL, 1, _RFTaskStack, 	&_RFTaskObj);
+	//xTaskCreateStatic(RF_Task, 	"RF", RF_TASK_STACK_SIZE, 	NULL, 1, _RFTaskStack, 	&_RFTaskObj);
 
 	/* CALLING INITS */
-	//SD_Init();
+	SD_Init();
+
 	IMU_Init();
 	HAL_Delay(300);
 

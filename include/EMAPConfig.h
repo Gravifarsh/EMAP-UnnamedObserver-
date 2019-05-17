@@ -23,11 +23,6 @@
 #define USE_GPS					0
 #define USE_nRF24L01			0
 
-#define	PACKET_LEN_SYS_STATE_ZERO	70
-#define PACKET_LEN_SYS_STATE		14
-#define PACKET_LEN_DATA_MPU			47
-#define	PACKET_LEN_DATA_BMP			19
-
 /*****STRUCTURES*****/
 typedef enum
 {
@@ -53,6 +48,7 @@ typedef struct
 
 typedef struct
 {
+	float time;
 	float temperature;
 	float pressure;
 	float height;
@@ -60,6 +56,7 @@ typedef struct
 
 typedef struct
 {
+	float time;
 	float accel[3];
 	float compass[3];
 	union
@@ -71,6 +68,7 @@ typedef struct
 
 typedef struct
 {
+	float time;
 	uint8_t	GlobalState;
 	uint8_t MPU9255_1;
 	uint8_t BMP280_1;
@@ -78,7 +76,6 @@ typedef struct
 	uint8_t BMP280_2;
 	uint8_t SD;
 	uint8_t	nRF;
-	float time;
 } system_state_t;
 
 typedef struct

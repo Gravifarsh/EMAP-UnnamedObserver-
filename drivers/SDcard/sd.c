@@ -75,7 +75,7 @@ uint8_t _dummy_[512];
 
 uint8_t _SD_DMA_READY_ = 1;
 
-
+/*
 // Ожидание окончания работы SPI модуля
 inline static void _spi_wait(void)
 {
@@ -87,7 +87,7 @@ inline static void _spi_wait(void)
          notYet = false;
       //__enable_irq();
    }
-}
+}*/
 
 
 /*
@@ -179,49 +179,6 @@ uint8_t sd_init(SPI_HandleTypeDef* hspi)
 	}
 
 	sd_cs(false);
-
-
-	/*HAL_NVIC_SetPriority(SPI1_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(SPI1_IRQn);
-	__HAL_RCC_DMA2_CLK_ENABLE();
-	//	 настраиваем DMA для работы с SPI_TX
-	_sd_dma_spi_tx.Instance = SD_DMA_TX_STREAM;
-	_sd_dma_spi_tx.Init.Channel = SD_DMA_CHANNEL;
-	_sd_dma_spi_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-	_sd_dma_spi_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-	_sd_dma_spi_tx.Init.MemInc = DMA_MINC_ENABLE;
-	_sd_dma_spi_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-	_sd_dma_spi_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-	_sd_dma_spi_tx.Init.Mode = DMA_NORMAL;
-	_sd_dma_spi_tx.Init.Priority = DMA_PRIORITY_MEDIUM;
-	_sd_dma_spi_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-	_sd_dma_spi_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-	_sd_dma_spi_tx.Init.MemBurst = DMA_MBURST_SINGLE;
-	_sd_dma_spi_tx.Init.PeriphBurst = DMA_PBURST_SINGLE;
-	PROCESS_ERROR(HAL_DMA_Init(&_sd_dma_spi_tx));
-	__HAL_LINKDMA(&spi_nRF24L01, hdmatx, _sd_dma_spi_tx);
-	 DMA interrupt init
-	HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
-	//	 настраиваем DMA для работы с SPI_RX
-	_sd_dma_spi_rx.Instance = SD_DMA_RX_STREAM;
-	_sd_dma_spi_rx.Init.Channel = SD_DMA_CHANNEL;
-	_sd_dma_spi_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-	_sd_dma_spi_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-	_sd_dma_spi_rx.Init.MemInc = DMA_MINC_ENABLE;
-	_sd_dma_spi_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-	_sd_dma_spi_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-	_sd_dma_spi_rx.Init.Mode = DMA_NORMAL;
-	_sd_dma_spi_rx.Init.Priority = DMA_PRIORITY_MEDIUM;
-	_sd_dma_spi_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-	_sd_dma_spi_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-	_sd_dma_spi_rx.Init.MemBurst = DMA_MBURST_SINGLE;
-	_sd_dma_spi_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
-	PROCESS_ERROR(HAL_DMA_Init(&_sd_dma_spi_rx));
-	__HAL_LINKDMA(&spi_nRF24L01, hdmarx, _sd_dma_spi_rx);
-	 DMA interrupt init
-	HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);*/
 
 end:
 	sd_cs(false);

@@ -14,5 +14,6 @@
 
 void nRF_Init();
 void RF_Task();
+void send(uint8_t* data, size_t size);
 
 #endif /* INCLUDE_EMAP_TASK_RF_H_ */

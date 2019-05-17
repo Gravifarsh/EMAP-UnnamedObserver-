@@ -178,8 +178,11 @@ uint8_t updateIMU(I2C_HandleTypeDef * hi2c)
 
 taskENTER_CRITICAL();
 
+		float _time = (float)HAL_GetTick() / 1000;
+
 		if (hi2c->Instance == I2C2)
 		{
+			data_MPU9255_2.time = _time;
 			//	пересчитываем их и записываем в структуры
 			for (int k = 0; k < 3; k++)
 			{
@@ -193,8 +196,8 @@ taskEXIT_CRITICAL();
 
 		else
 		{
-			float _time = (float)HAL_GetTick() / 1000;
-			system_state.time = _time;
+			system_state.time = _time; // time for quaternion
+			data_MPU9255_1.time = _time;
 			//	пересчитываем их и записываем в структуры
 			for (int k = 0; k < 3; k++)
 			{
@@ -264,10 +267,13 @@ taskEXIT_CRITICAL();
 	height = 18400 * log(zero_pressure / pressure_f);
 
 taskENTER_CRITICAL();
+	float _time = (float)HAL_GetTick() / 1000;
 	if(hi2c->Instance == I2C1)
 	{
 		data_raw_BMP280_1.pressure = pressure;
 		data_raw_BMP280_1.temperature = temp;
+
+		data_BMP280_1.time = _time;
 		data_BMP280_1.pressure = pressure_f;
 		data_BMP280_1.temperature = temp_f;
 		data_BMP280_1.height = height;
@@ -276,6 +282,8 @@ taskENTER_CRITICAL();
 	{
 		data_raw_BMP280_2.pressure = pressure;
 		data_raw_BMP280_2.temperature = temp;
+
+		data_BMP280_2.time = _time;
 		data_BMP280_2.pressure = pressure_f;
 		data_BMP280_2.temperature = temp_f;
 		data_BMP280_2.height = height;
@@ -303,7 +311,7 @@ uint8_t updateAll()
 //	trace_printf("MPU1\n");
 	PROCESS_ERROR( (system_state.MPU9255_1 = updateIMU(&i2c_IMU_1)) );
 //	trace_printf("MPU2\n");
-	PROCESS_ERROR( (system_state.MPU9255_1 = updateIMU(&i2c_IMU_2)) );
+	PROCESS_ERROR( (system_state.MPU9255_2 = updateIMU(&i2c_IMU_2)) );
 //	trace_printf("SavePrevState\n");
 	savePrevState();
 //	trace_printf("BMP1\n");
@@ -346,7 +354,7 @@ void IMU_Task()
 	{
 		for(;;)
 		{
-			trace_puts("IMU TASK");
+			//trace_puts("IMU TASK");
 			vTaskDelay(10 / portTICK_RATE_MS);
 
 			updateAll();
