@@ -116,7 +116,7 @@ void uarts_test() {
 	HAL_UART_Init(&huart4);
 
 	char msg[100];
-/*
+
 	char tdc[] = "_tdcinit;";
 	HAL_UART_Transmit(&huart4, (uint8_t*)tdc, sizeof(tdc), 50);
 
@@ -132,7 +132,7 @@ void uarts_test() {
 	HAL_UART_Receive(&huart4, (uint8_t*)msg, sizeof(msg) - 1, 50);
 
 	trace_printf("%s\n", msg);
-*/
+
 	UART_HandleTypeDef huart5;
 	memset(&huart5, 0x00, sizeof(huart5));
 
@@ -154,6 +154,36 @@ void uarts_test() {
 
 	HAL_UART_DeInit(&huart4);
 	HAL_UART_DeInit(&huart5);
+}
+
+#include "lidar.h"
+
+void lidar_test() {
+	UART_HandleTypeDef huart4;
+	memset(&huart4, 0x00, sizeof(huart4));
+
+	huart4.Instance = UART4;
+	huart4.Init.BaudRate = 38400;
+	huart4.Init.Mode = UART_MODE_TX_RX;
+	huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	huart4.Init.OverSampling = UART_OVERSAMPLING_8;
+	huart4.Init.Parity = UART_PARITY_NONE;
+	huart4.Init.StopBits = UART_STOPBITS_1;
+	huart4.Init.WordLength = UART_WORDLENGTH_8B;
+
+	HAL_UART_Init(&huart4);
+
+	lidar_t lidar;
+	lidar.huart = &huart4;
+
+	trace_printf("%d\n", lidar_tdcInit(&lidar));
+
+	uint32_t res;
+	lidar_meas(&lidar, &res);
+
+	trace_printf("%s\n", lidar.rxbuffer);
+
+	HAL_UART_DeInit(&huart4);
 }
 
 int
@@ -196,7 +226,7 @@ main(int argc, char* argv[])
 	IMU_Init();
 	HAL_Delay(300);
 
-	uarts_test();
+	lidar_test();
 
 	//nRF_Init();
 	//HAL_Delay(300);
