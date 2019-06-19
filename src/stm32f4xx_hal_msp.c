@@ -154,6 +154,46 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
   }
 }
 
+void HAL_UART_MspInit(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance == UART4)
+	{
+		__HAL_RCC_UART4_CLK_ENABLE();
+		__GPIOA_CLK_ENABLE();
+
+		GPIO_InitTypeDef gpioa;
+		gpioa.Alternate = GPIO_AF8_UART4;
+		gpioa.Mode = GPIO_MODE_AF_PP;
+		gpioa.Pin = GPIO_PIN_0 | GPIO_PIN_1;
+		gpioa.Pull = GPIO_NOPULL;
+		gpioa.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+		HAL_GPIO_Init(GPIOA, &gpioa);
+	}
+	else if(huart->Instance == UART5)
+	{
+		__HAL_RCC_UART5_CLK_ENABLE();
+		__GPIOC_CLK_ENABLE();
+		__GPIOD_CLK_ENABLE();
+
+		GPIO_InitTypeDef gpioc;
+		gpioc.Alternate = GPIO_AF8_UART5;
+		gpioc.Mode = GPIO_MODE_AF_PP;
+		gpioc.Pin = GPIO_PIN_12;
+		gpioc.Pull = GPIO_NOPULL;
+		gpioc.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+		HAL_GPIO_Init(GPIOC, &gpioc);
+
+		GPIO_InitTypeDef gpiod;
+		gpiod.Alternate = GPIO_AF8_UART5;
+		gpiod.Mode = GPIO_MODE_AF_PP;
+		gpiod.Pin = GPIO_PIN_2;
+		gpiod.Pull = GPIO_NOPULL;
+		gpiod.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+		HAL_GPIO_Init(GPIOD, &gpiod);
+	}
+	else abort();
+}
+
 /**
   * @brief  Initializes the PPP MSP.
   * @note   This functiona is called from HAL_PPP_Init() function to perform 
