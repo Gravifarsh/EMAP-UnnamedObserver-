@@ -99,6 +99,63 @@ system_state_t 	system_prev_state;
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
+
+void uarts_test() {
+	UART_HandleTypeDef huart4;
+	memset(&huart4, 0x00, sizeof(huart4));
+
+	huart4.Instance = UART4;
+	huart4.Init.BaudRate = 38400;
+	huart4.Init.Mode = UART_MODE_TX_RX;
+	huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	huart4.Init.OverSampling = UART_OVERSAMPLING_8;
+	huart4.Init.Parity = UART_PARITY_NONE;
+	huart4.Init.StopBits = UART_STOPBITS_1;
+	huart4.Init.WordLength = UART_WORDLENGTH_8B;
+
+	HAL_UART_Init(&huart4);
+
+	char msg[100];
+/*
+	char tdc[] = "_tdcinit;";
+	HAL_UART_Transmit(&huart4, (uint8_t*)tdc, sizeof(tdc), 50);
+
+	memset(msg, 0x00, sizeof(msg));
+	HAL_UART_Receive(&huart4, (uint8_t*)msg, sizeof(msg) - 1, 50);
+
+	trace_printf("%s\n", msg);
+
+	char meas[] = "_meas;";
+	HAL_UART_Transmit(&huart4, (uint8_t*)meas, sizeof(meas), 50);
+
+	memset(msg, 0x00, sizeof(msg));
+	HAL_UART_Receive(&huart4, (uint8_t*)msg, sizeof(msg) - 1, 50);
+
+	trace_printf("%s\n", msg);
+*/
+	UART_HandleTypeDef huart5;
+	memset(&huart5, 0x00, sizeof(huart5));
+
+	huart5.Instance = UART5;
+	huart5.Init.BaudRate = 9600;
+	huart5.Init.Mode = UART_MODE_TX_RX;
+	huart5.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	huart5.Init.OverSampling = UART_OVERSAMPLING_8;
+	huart5.Init.Parity = UART_PARITY_NONE;
+	huart5.Init.StopBits = UART_STOPBITS_1;
+	huart5.Init.WordLength = UART_WORDLENGTH_8B;
+
+	HAL_UART_Init(&huart5);
+
+	memset(msg, 0x00, sizeof(msg));
+	HAL_UART_Receive(&huart5, (uint8_t*)msg, sizeof(msg) - 1, 1000);
+
+	trace_printf("%s\n", msg);
+
+	HAL_UART_DeInit(&huart4);
+	HAL_UART_DeInit(&huart5);
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -129,18 +186,20 @@ main(int argc, char* argv[])
 	memset(&system_prev_state, 	0x00, sizeof(system_prev_state));
 
 	/* CREATING TASKS */
-	xTaskCreateStatic(SD_Task,	"SD",	SD_TASK_STACK_SIZE,		NULL, 1, _SDTaskStack, 	&_SDTaskObj);
+	//xTaskCreateStatic(SD_Task,	"SD",	SD_TASK_STACK_SIZE,		NULL, 1, _SDTaskStack, 	&_SDTaskObj);
 	xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
 	//xTaskCreateStatic(RF_Task, 	"RF", RF_TASK_STACK_SIZE, 	NULL, 1, _RFTaskStack, 	&_RFTaskObj);
 
 	/* CALLING INITS */
-	SD_Init();
+	//SD_Init();
 
 	IMU_Init();
 	HAL_Delay(300);
 
-	nRF_Init();
-	HAL_Delay(300);
+	uarts_test();
+
+	//nRF_Init();
+	//HAL_Delay(300);
 
 	/* STARTING */
 	vTaskStartScheduler();
