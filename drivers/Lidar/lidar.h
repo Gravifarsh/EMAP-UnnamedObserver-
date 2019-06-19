@@ -11,12 +11,18 @@
 #include "inttypes.h"
 #include "stm32f4xx_hal.h"
 
+#define LIDAR_RXBUF_SIZE (256)
+#define LIDAR_TXBUF_SIZE (32)
+
 typedef struct {
 	UART_HandleTypeDef *huart;
+	char txbuffer[LIDAR_TXBUF_SIZE];
+	char rxbuffer[LIDAR_RXBUF_SIZE];
 } lidar_t;
 
 HAL_StatusTypeDef lidar_tdcInit(lidar_t*);
-HAL_StatusTypeDef lidar_setMeasFreq(lidar_t*, uint64_t);
+HAL_StatusTypeDef lidar_setMeasFreq(lidar_t*, uint32_t);
+HAL_StatusTypeDef lidar_setRepIntFreq(lidar_t*, uint32_t);
 HAL_StatusTypeDef lidar_meas(lidar_t*, uint32_t*);
 HAL_StatusTypeDef lidar_start(lidar_t*);
 HAL_StatusTypeDef lidar_stop(lidar_t*);
