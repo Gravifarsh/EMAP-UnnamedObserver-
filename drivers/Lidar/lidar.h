@@ -17,6 +17,7 @@ typedef struct {
 
 HAL_StatusTypeDef lidar_tdcInit(lidar_t*);
 HAL_StatusTypeDef lidar_setMeasFreq(lidar_t*, uint64_t);
+HAL_StatusTypeDef lidar_meas(lidar_t*, uint32_t*);
 HAL_StatusTypeDef lidar_start(lidar_t*);
 HAL_StatusTypeDef lidar_stop(lidar_t*);
 
