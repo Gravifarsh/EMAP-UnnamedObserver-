@@ -178,12 +178,39 @@ void lidar_test() {
 
 	trace_printf("%d\n", lidar_tdcInit(&lidar));
 
-	uint32_t res;
-	lidar_meas(&lidar, &res);
+	trace_printf("%s\n", lidar.rxbuffer);
+
+	uint32_t dummy;
+	for(;;) {
+		trace_printf("%d\n", lidar_meas(&lidar, &dummy));
+
+		trace_printf("%s\n", lidar.rxbuffer);
+	}
+
+
+	/*
+	trace_printf("%d\n", lidar_setRepIntFreq(&lidar, 100));
+
+	trace_printf("%s\n", lidar.rxbuffer);
+
+
+	trace_printf("%d\n", lidar_start(&lidar));
+
+	trace_printf("%s\n", lidar.rxbuffer);
+
+	HAL_Delay(100);
+
+	uint32_t min, mid, max;
+	trace_printf("%d\n", lidar_getRes(&lidar, &min, &mid, &max));
+
+	trace_printf("%s\n", lidar.rxbuffer);
+
+	trace_printf("%d\n", lidar_stop(&lidar));
 
 	trace_printf("%s\n", lidar.rxbuffer);
 
 	HAL_UART_DeInit(&huart4);
+	*/
 }
 
 int
@@ -217,16 +244,16 @@ main(int argc, char* argv[])
 
 	/* CREATING TASKS */
 	//xTaskCreateStatic(SD_Task,	"SD",	SD_TASK_STACK_SIZE,		NULL, 1, _SDTaskStack, 	&_SDTaskObj);
-	xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
+	//xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
 	//xTaskCreateStatic(RF_Task, 	"RF", RF_TASK_STACK_SIZE, 	NULL, 1, _RFTaskStack, 	&_RFTaskObj);
 
 	/* CALLING INITS */
 	//SD_Init();
 
-	IMU_Init();
-	HAL_Delay(300);
+	//IMU_Init();
+	//HAL_Delay(300);
 
-	lidar_test();
+	xTaskCreateStatic(lidar_test, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
 
 	//nRF_Init();
 	//HAL_Delay(300);
