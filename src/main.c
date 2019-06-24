@@ -195,7 +195,7 @@ main(int argc, char* argv[])
 	memset(&system_prev_state, 	0x00, sizeof(system_prev_state));
 
 	/* CREATING TASKS */
-	xTaskCreateStatic(SD_Task,	"SD",	SD_TASK_STACK_SIZE,		NULL, 1, _SDTaskStack, 	&_SDTaskObj);
+	//xTaskCreateStatic(SD_Task,	"SD",	SD_TASK_STACK_SIZE,		NULL, 1, _SDTaskStack, 	&_SDTaskObj);
 	//xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
 	//xTaskCreateStatic(RF_Task, 	"RF", RF_TASK_STACK_SIZE, 	NULL, 1, _RFTaskStack, 	&_RFTaskObj);
 	//xTaskCreateStatic(GPS_Task, "GPS",	GPS_TASK_STACK_SIZE, 	NULL, 1, _GPSTaskStack,	&_GPSTaskObj);

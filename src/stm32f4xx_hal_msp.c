@@ -127,20 +127,37 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 		__GPIOA_CLK_ENABLE();
 		__GPIOC_CLK_ENABLE();
 
-		GPIO_InitTypeDef gpioc;
-		gpioc.Mode = GPIO_MODE_OUTPUT_PP;
-		gpioc.Pin = GPIO_PIN_3;
-		gpioc.Pull = GPIO_NOPULL;
-		gpioc.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-		HAL_GPIO_Init(GPIOC,&gpioc);
-
 		GPIO_InitTypeDef gpioa;
+		GPIO_InitTypeDef gpioc;
+
+		/* SPI */
 		gpioa.Alternate = GPIO_AF5_SPI1;
 		gpioa.Mode = GPIO_MODE_AF_PP;
 		gpioa.Pin = GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
 		gpioa.Pull = GPIO_NOPULL;
 		gpioa.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+
 		HAL_GPIO_Init(GPIOA, &gpioa);
+
+		/* nRF CS/CE */
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 | GPIO_PIN_4, GPIO_PIN_SET);
+
+		gpioa.Pin = GPIO_PIN_3 | GPIO_PIN_4;
+		gpioa.Mode = GPIO_MODE_OUTPUT_PP;
+		gpioa.Speed = GPIO_SPEED_FREQ_HIGH;
+		gpioa.Pull = GPIO_NOPULL;
+
+		HAL_GPIO_Init(GPIOA, &gpioa);
+
+		/* SD CS */
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
+
+		gpioc.Mode = GPIO_MODE_OUTPUT_PP;
+		gpioc.Pin = GPIO_PIN_3;
+		gpioc.Pull = GPIO_NOPULL;
+		gpioc.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+
+		HAL_GPIO_Init(GPIOC, &gpioc);
 	}
 	else abort();
 }
