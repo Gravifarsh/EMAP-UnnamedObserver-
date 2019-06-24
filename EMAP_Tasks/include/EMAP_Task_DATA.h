@@ -11,8 +11,8 @@
 #include "EMAPConfig.h"
 #define BLOCK_SIZE	512
 
-void SD_Init();
+void DATA_Init();
 
-void SD_Task();
+void DATA_Task();
 
 #endif /* INCLUDE_EMAP_TASK_SD_H_ */
