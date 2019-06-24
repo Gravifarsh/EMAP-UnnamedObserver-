@@ -222,9 +222,13 @@ void DATA_Task()
 
 	trace_printf("SD State: %d\n", system_state.SD);
 
+
+	uint32_t time = HAL_GetTick();
 	for(;;)
 	{
-		vTaskDelay(100/portTICK_RATE_MS);
+		trace_printf("DATA TASK TIME ELAPSED: %d\n", HAL_GetTick() - time);
+		time = HAL_GetTick();
+		//vTaskDelay(100/portTICK_RATE_MS);
 
 		if(isZeroWrote)
 		{

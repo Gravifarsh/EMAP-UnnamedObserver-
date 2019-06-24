@@ -352,10 +352,13 @@ void IMU_Task()
 */
 	if( (system_state.MPU9255_1 | system_state.BMP280_1 | system_state.MPU9255_2 | system_state.BMP280_2) ==  EMAP_ERROR_NONE )
 	{
+		uint32_t time = HAL_GetTick();
 		for(;;)
 		{
+			trace_printf("IMU TASK TIME ELAPSED: %d\n", HAL_GetTick() - time);
+			time = HAL_GetTick();
 			//trace_puts("IMU TASK");
-			vTaskDelay(10 / portTICK_RATE_MS);
+			//vTaskDelay(10 / portTICK_RATE_MS);
 
 			updateAll();
 			//trace_printf("Pressure1: %d.%d\nTemp1: %d.%d\n", INTIFY(data_BMP280_1.pressure), INTIFY(data_BMP280_1.temperature));

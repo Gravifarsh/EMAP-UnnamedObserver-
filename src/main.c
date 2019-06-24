@@ -39,29 +39,23 @@
 
 #include "EMAPConfig.h"
 #include "EMAP_Task_IMU.h"
-#include "EMAP_Task_RF.h"
-#include "EMAP_Task_SD.h"
+#include "EMAP_Task_DATA.h"
 #include "gps_nmea.h"
 
-//	параметры SD_task
+//	параметры GPS_task
 #define GPS_TASK_STACK_SIZE	(60*configMINIMAL_STACK_SIZE)
 static StackType_t	_GPSTaskStack[GPS_TASK_STACK_SIZE];
 static StaticTask_t	_GPSTaskObj;
 
-//	параметры SD_task
-#define SD_TASK_STACK_SIZE	(60*configMINIMAL_STACK_SIZE)
-static StackType_t	_SDTaskStack[SD_TASK_STACK_SIZE];
-static StaticTask_t	_SDTaskObj;
+//	параметры DATA_task
+#define DATA_TASK_STACK_SIZE	(60*configMINIMAL_STACK_SIZE)
+static StackType_t	_DATATaskStack[DATA_TASK_STACK_SIZE];
+static StaticTask_t	_DATATaskObj;
 
 //	параметры IMU_task
 #define IMU_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
 static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
 static StaticTask_t	_IMUTaskObj;
-
-//	параметры RF_task
-#define RF_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
-static StackType_t	_RFTaskStack[RF_TASK_STACK_SIZE];
-static StaticTask_t	_RFTaskObj;
 
 I2C_HandleTypeDef 	i2c_IMU_1;
 I2C_HandleTypeDef 	i2c_IMU_2;
@@ -195,18 +189,20 @@ main(int argc, char* argv[])
 	memset(&system_prev_state, 	0x00, sizeof(system_prev_state));
 
 	/* CREATING TASKS */
-	//xTaskCreateStatic(SD_Task,	"SD",	SD_TASK_STACK_SIZE,		NULL, 1, _SDTaskStack, 	&_SDTaskObj);
-	//xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
+	//xTaskCreateStatic(DATA_Task,	"DATA",	DATA_TASK_STACK_SIZE,		NULL, 1, _DATATaskStack, 	&_DATATaskObj);
+	xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
 	//xTaskCreateStatic(RF_Task, 	"RF", RF_TASK_STACK_SIZE, 	NULL, 1, _RFTaskStack, 	&_RFTaskObj);
 	//xTaskCreateStatic(GPS_Task, "GPS",	GPS_TASK_STACK_SIZE, 	NULL, 1, _GPSTaskStack,	&_GPSTaskObj);
 
 	/* CALLING INITS */
+	//DATA_Init();
+
 	//SD_Init();
 
-	//IMU_Init();
+	IMU_Init();
 	//HAL_Delay(300);
 
-	uarts_test();
+	//uarts_test();
 
 	//nRF_Init();
 	//HAL_Delay(300);
