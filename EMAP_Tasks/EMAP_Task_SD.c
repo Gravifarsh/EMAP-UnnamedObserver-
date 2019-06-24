@@ -20,6 +20,22 @@
 #define NEED_ACK	false
 
 static dump_channel_state_t stream_file;
+uint8_t buf[BLOCK_SIZE];
+uint32_t pos = 0;
+
+void drop(const void * data, size_t datasize)
+{
+	size_t datapos = 0;
+
+	while(datapos < datasize) {
+		buf[pos++] = *((uint8_t*)data + datapos++);
+
+		if(pos == BLOCK_SIZE) {
+			dump(&stream_file, buf, BLOCK_SIZE);
+			pos = 0;
+		}
+	}
+}
 
 void SD_Init()
 {
@@ -27,8 +43,9 @@ void SD_Init()
 	//system_state.nRF = nRF24L01_initError;
 	HAL_Delay(100);
 
-	stream_file.res = 1;
-	stream_file.file_opened = false;
+	memset(&stream_file, 0x00, sizeof(stream_file));
+	//stream_file.res = 1;
+	//stream_file.file_opened = false;
 	dump_init(&stream_file);
 taskENTER_CRITICAL();
 	system_state.SD = (uint8_t)stream_file.res;
@@ -44,14 +61,12 @@ void writeSysStateZero()
 	memcpy(&buffer[2], &system_state_zero, sizeof(system_state_zero_t));
 	buffer[sizeof(system_state_zero_t) + 1] = 0xF9;
 
-	//trace_puts("Sending zero");
-	//nRF24L01_send(&spi_nRF24L01, buffer, PACKET_LEN_SYS_STATE_ZERO, NEED_ACK);
-	dump(&stream_file, buffer, sizeof(system_state_zero_t) + 2);
-	send(buffer, sizeof(system_state_zero_t) + 2);
+	drop(buffer, sizeof(system_state_zero_t) + 2);
 }
 
 void writeSysState()
 {
+
 	uint8_t buffer[sizeof(system_state_t) + 2];
 
 taskENTER_CRITICAL();
@@ -62,7 +77,7 @@ taskENTER_CRITICAL();
 	buffer[sizeof(system_state_t) + 1] = 0xFF;
 taskEXIT_CRITICAL();
 
-	dump(&stream_file, buffer, sizeof(system_state_t) + 2);
+	drop(buffer, sizeof(system_state_t) + 2);
 	send(buffer, sizeof(system_state_t) + 2);
 }
 
@@ -85,8 +100,7 @@ taskENTER_CRITICAL();
 	}
 taskEXIT_CRITICAL();
 
-	//trace_puts("Sending IMU");
-	dump(&stream_file, buffer, sizeof(data_MPU9255_t) + 2);
+	drop(buffer, sizeof(data_MPU9255_t) + 2);
 	send(buffer, sizeof(data_MPU9255_t) + 2);
 }
 
@@ -100,9 +114,7 @@ taskENTER_CRITICAL();
 	buffer[sizeof(data_MPU9255_t) + 1] = 0xFC;
 taskEXIT_CRITICAL();
 
-	//trace_puts("Sending ISC");
-	//nRF24L01_send(&spi_nRF24L01, buffer, PACKET_LEN_DATA_MPU, NEED_ACK);
-	dump(&stream_file, buffer, sizeof(data_MPU9255_t) + 2);
+	drop(buffer, sizeof(data_MPU9255_t) + 2);
 	send(buffer, sizeof(data_MPU9255_t) + 2);
 }
 
@@ -116,8 +128,7 @@ taskENTER_CRITICAL();
 	buffer[sizeof(data_BMP280_t) + 1] = 0xFD;
 taskEXIT_CRITICAL();
 
-	//trace_puts("Sending BMP1");
-	dump(&stream_file, buffer, sizeof(data_BMP280_t) + 2);
+	drop(buffer, sizeof(data_BMP280_t) + 2);
 	send(buffer, sizeof(data_BMP280_t) + 2);
 
 taskENTER_CRITICAL();
@@ -126,8 +137,7 @@ taskENTER_CRITICAL();
 	buffer[sizeof(data_BMP280_t) + 1] = 0xFE;
 taskEXIT_CRITICAL();
 
-	//trace_puts("Sending BMP1");
-	dump(&stream_file, buffer, sizeof(data_BMP280_t) + 2);
+	drop(buffer, sizeof(data_BMP280_t) + 2);
 	send(buffer, sizeof(data_BMP280_t) + 2);
 }
 
@@ -146,7 +156,6 @@ void SD_Task()
 
 	for(;;)
 	{
-		//trace_puts("SD TASK");
 		vTaskDelay(100/portTICK_RATE_MS);
 
 		if(isZeroWrote)
@@ -159,11 +168,13 @@ void SD_Task()
 		}
 		else
 		{
-			if(system_state_zero.pressure)
-			{
+			//if(system_state_zero.pressure)
+			//{
 				writeSysStateZero();
 				isZeroWrote = true;
-			}
+			//}
 		}
 	}
 }
+
+

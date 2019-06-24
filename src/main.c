@@ -41,6 +41,12 @@
 #include "EMAP_Task_IMU.h"
 #include "EMAP_Task_RF.h"
 #include "EMAP_Task_SD.h"
+#include "gps_nmea.h"
+
+//	параметры SD_task
+#define GPS_TASK_STACK_SIZE	(60*configMINIMAL_STACK_SIZE)
+static StackType_t	_GPSTaskStack[GPS_TASK_STACK_SIZE];
+static StaticTask_t	_GPSTaskObj;
 
 //	параметры SD_task
 #define SD_TASK_STACK_SIZE	(60*configMINIMAL_STACK_SIZE)
@@ -60,6 +66,7 @@ static StaticTask_t	_RFTaskObj;
 I2C_HandleTypeDef 	i2c_IMU_1;
 I2C_HandleTypeDef 	i2c_IMU_2;
 SPI_HandleTypeDef	spi_nRF24L01;
+I2C_HandleTypeDef 	i2c_IMU_2;
 rscs_bmp280_descriptor_t * IMU_bmp280_1;
 rscs_bmp280_descriptor_t * IMU_bmp280_2;
 
@@ -70,6 +77,7 @@ data_MPU9255_t 		data_MPU9255_1;
 data_MPU9255_t 		data_MPU9255_2;
 data_BMP280_t 		data_BMP280_1;
 data_BMP280_t 		data_BMP280_2;
+data_GPS_t			data_GPS;
 system_state_t 		system_state;
 system_state_zero_t system_state_zero;
 
@@ -120,6 +128,7 @@ main(int argc, char* argv[])
 	memset(&data_raw_BMP280_2,	0x00, sizeof(data_raw_BMP280_2));
 	memset(&data_BMP280_2, 		0x00, sizeof(data_BMP280_2));
 	memset(&data_MPU9255_2,		0x00, sizeof(data_MPU9255_2));
+	memset(&data_GPS,			0x00, sizeof(data_GPS));
 	memset(&system_state,		0x00, sizeof(system_state));
 	memset(&system_state_zero,	0x00, sizeof(system_state_zero));
 
@@ -130,17 +139,23 @@ main(int argc, char* argv[])
 
 	/* CREATING TASKS */
 	xTaskCreateStatic(SD_Task,	"SD",	SD_TASK_STACK_SIZE,		NULL, 1, _SDTaskStack, 	&_SDTaskObj);
-	xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
+	//xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
 	//xTaskCreateStatic(RF_Task, 	"RF", RF_TASK_STACK_SIZE, 	NULL, 1, _RFTaskStack, 	&_RFTaskObj);
+	//xTaskCreateStatic(GPS_Task, "GPS",	GPS_TASK_STACK_SIZE, 	NULL, 1, _GPSTaskStack,	&_GPSTaskObj);
 
 	/* CALLING INITS */
 	SD_Init();
 
-	IMU_Init();
-	HAL_Delay(300);
+	//IMU_Init();
+	//HAL_Delay(300);
 
 	nRF_Init();
 	HAL_Delay(300);
+
+	//GPS_Init();
+	//HAL_Delay(300);
+
+	//TSL_Init();
 
 	/* STARTING */
 	vTaskStartScheduler();

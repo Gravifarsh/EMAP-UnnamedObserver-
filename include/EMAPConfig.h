@@ -9,7 +9,7 @@
 #include "stm32f4xx_hal_i2c.h"
 #include "stm32f4xx_hal_spi.h"
 
-#include "nRF24L01P.h"
+#include "TSL2561.h"
 #include "bmp280.h"
 #include "nRF24L01P.h"
 
@@ -76,6 +76,7 @@ typedef struct
 	uint8_t BMP280_2;
 	uint8_t SD;
 	uint8_t	nRF;
+	uint8_t GPS;
 } system_state_t;
 
 typedef struct
@@ -88,6 +89,11 @@ typedef struct
 	float accel_staticShift2[3];
 } system_state_zero_t;
 
+typedef struct
+{
+	float coords[3];
+}data_GPS_t;
+
 
 /*****GLOBAL VARIABLES*****/
 
@@ -98,7 +104,10 @@ extern rscs_bmp280_descriptor_t * IMU_bmp280_2;
 
 extern SPI_HandleTypeDef	spi_nRF24L01;
 extern nRF24L01P			nRF24;
+extern I2C_HandleTypeDef	i2c_tsl2561;
+extern tsl2561_t			tsl2561;
 
+extern data_GPS_t			data_GPS;
 extern data_raw_BMP280_t 	data_raw_BMP280_1;
 extern data_raw_BMP280_t 	data_raw_BMP280_2;
 extern data_MPU9255_t 		data_MPU9255_1;

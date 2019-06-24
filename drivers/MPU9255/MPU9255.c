@@ -41,26 +41,6 @@ int mpu9255_writeRegister(I2C_HandleTypeDef * hi2c, mpu9255_address_t address, u
 end:
 	return error;
 }
-/*
-int mpu9255_readRegister(mpu9255_address_t address, uint8_t reg_address, uint8_t* dataRead, uint8_t count)
-{
-	return HAL_I2C_Mem_Read(&i2c_IMU, address, reg_address, I2C_MEMADD_SIZE_8BIT, dataRead, count, 0xFF);
-}
-
-int mpu9255_writeRegister(mpu9255_address_t address, uint8_t reg_address, uint8_t dataWrite)
-{
-	int error = 0;
-	uint8_t regData = 0x00;
-	PROCESS_ERROR(mpu9255_readRegister(address, reg_address, &regData, 1));
-
-
-	uint8_t regData_new = (regData | dataWrite);
-	return HAL_I2C_Mem_Write(&i2c_IMU, address, reg_address, I2C_MEMADD_SIZE_8BIT, &regData_new, 1, 0xFF);
-
-end:
-	return error;
-}
-*/
 
 int mpu9255_init(I2C_HandleTypeDef* hi2c, I2C_TypeDef * instance)
 {

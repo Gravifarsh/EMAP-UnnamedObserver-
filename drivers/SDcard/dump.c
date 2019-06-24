@@ -177,7 +177,7 @@ bool dump_init(dump_channel_state_t* state)
 		else if (res == FR_OK)
 		{
 			state->file_opened = false;
-			//trace_printf("dump file name '%s' already exists\n", fname);
+			trace_printf("dump file name '%s' already exists\n", fname);
 			//f_close(&fp); пока попробуем без этого
 			goto again;
 		}
