@@ -12,6 +12,7 @@
 #include "TSL2561.h"
 #include "bmp280.h"
 #include "nRF24L01P.h"
+#include "lidar.h"
 
 // if error set value and go to end
 #define PROCESS_ERROR(x) if (0 != (error = (x))) { goto end; }
@@ -104,8 +105,12 @@ extern rscs_bmp280_descriptor_t * IMU_bmp280_2;
 
 extern SPI_HandleTypeDef	spi_nRF24L01;
 extern nRF24L01P			nRF24;
+
 extern I2C_HandleTypeDef	i2c_tsl2561;
 extern tsl2561_t			tsl2561;
+
+extern UART_HandleTypeDef	uart_lidar;
+extern lidar_t				lidar;
 
 extern data_GPS_t			data_GPS;
 extern data_raw_BMP280_t 	data_raw_BMP280_1;
