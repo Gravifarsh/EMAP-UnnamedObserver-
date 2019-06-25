@@ -44,4 +44,7 @@ typedef struct
 	tsl2561_adress_t addr;
 }tsl2561_t;
 
+HAL_StatusTypeDef tsl2561_readReg(I2C_HandleTypeDef * hi2c, uint8_t regAddr, uint8_t * buffer, uint8_t size);
+HAL_StatusTypeDef tsl2561_writeReg(I2C_HandleTypeDef * hi2c, uint8_t regAddr, uint8_t buffer, uint8_t size);
+
 #endif /* TSL2561_TSL2561_H_ */

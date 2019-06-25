@@ -5,12 +5,9 @@
  *      Author: developer
  */
 
-#include <stm32f4xx_hal.h>
-#include "diag/Trace.h"
-
 #include "EMAP_Task_TSL.h"
 
-int TSL_Init()
+void TSL_Init()
 {
 	int error = 0;
 
@@ -59,5 +56,4 @@ int TSL_Init()
 
 end:
 	trace_printf("LS: %d", error);
-	return error;
 }

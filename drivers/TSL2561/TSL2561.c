@@ -15,12 +15,12 @@ tsl2561_t			tsl2561;
 
 #define PROCESS_ERROR(x) if (0 != (error = (x))) { goto end; }
 
-int tsl2561_readReg(I2C_HandleTypeDef * hi2c, uint8_t regAddr, uint8_t * buffer, uint8_t size)
+HAL_StatusTypeDef tsl2561_readReg(I2C_HandleTypeDef * hi2c, uint8_t regAddr, uint8_t * buffer, uint8_t size)
 {
 	return HAL_I2C_Mem_Read(hi2c, TSL2561_ADDR_FLOAT, regAddr, I2C_MEMADD_SIZE_8BIT, buffer, size, 0xFF);
 }
 
-int tsl2561_writeReg(I2C_HandleTypeDef * hi2c, uint8_t regAddr, uint8_t buffer, uint8_t size)
+HAL_StatusTypeDef tsl2561_writeReg(I2C_HandleTypeDef * hi2c, uint8_t regAddr, uint8_t buffer, uint8_t size)
 {
 	int error = 0;
 	uint8_t regData = 0x00;

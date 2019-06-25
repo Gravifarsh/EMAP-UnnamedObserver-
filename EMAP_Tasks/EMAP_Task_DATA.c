@@ -21,6 +21,7 @@
 static dump_channel_state_t stream_file;
 uint8_t buf[BLOCK_SIZE];
 uint32_t pos = 0;
+bool isZeroWrote = false;
 
 /* FOR NRF */
 
@@ -205,9 +206,6 @@ taskEXIT_CRITICAL();
 
 void DATA_Task()
 {
-	bool isZeroWrote = false;
-
-
 	if(stream_file.file_opened == false)
 	{
 		trace_printf("SD_Task Shut Down!\n");
@@ -222,7 +220,6 @@ void DATA_Task()
 	{
 		trace_printf("DATA TASK TIME ELAPSED: %d\n", HAL_GetTick() - time);
 		time = HAL_GetTick();
-		//vTaskDelay(100/portTICK_RATE_MS);
 
 		if(isZeroWrote)
 		{
@@ -234,11 +231,11 @@ void DATA_Task()
 		}
 		else
 		{
-			//if(system_state_zero.pressure)
-			//{
+			if(system_state_zero.pressure)
+			{
 				writeSysStateZero();
 				isZeroWrote = true;
-			//}
+			}
 		}
 	}
 }

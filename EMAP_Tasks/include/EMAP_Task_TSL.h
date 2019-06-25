@@ -8,6 +8,8 @@
 #ifndef INCLUDE_EMAP_TASK_TSL_H_
 #define INCLUDE_EMAP_TASK_TSL_H_
 
+#include "EMAPConfig.h"
+
 void TSL_Init();
 void TSL_Task();
 

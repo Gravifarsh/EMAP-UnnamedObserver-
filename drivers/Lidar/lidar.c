@@ -17,7 +17,7 @@
 
 #define RES_ACK ("ACK")
 
-#define RX_TIMEOUT (5)
+#define RX_TIMEOUT (15)
 #define TX_TIMEOUT (100)
 
 inline HAL_StatusTypeDef checkAck(lidar_t* dev) {
