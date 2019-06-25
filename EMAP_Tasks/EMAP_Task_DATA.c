@@ -18,8 +18,6 @@
 
 /* FOR SD */
 
-#define NEED_ACK	false
-
 static dump_channel_state_t stream_file;
 uint8_t buf[BLOCK_SIZE];
 uint32_t pos = 0;
@@ -32,7 +30,7 @@ const uint8_t TXAddr[5] = {0xE7, 0xE7, 0xE7, 0xE7, 0xE7};
 uint8_t RXBuffer[32];
 
 SPI_HandleTypeDef	spi_nRF24L01;
-nRF24L01P 	nRF24;
+nRF24L01P 			nRF24;
 
 void drop(const void * data, size_t datasize)
 {
@@ -106,13 +104,9 @@ void nRF_Init(){
 void SD_Init()
 {
 	memset(&stream_file, 0x00, sizeof(stream_file));
-	//stream_file.res = 1;
-	//stream_file.file_opened = false;
+
 	dump_init(&stream_file);
-taskENTER_CRITICAL(); //wtf? TODO
 	system_state.SD = (uint8_t)stream_file.res;
-taskEXIT_CRITICAL();
-	HAL_Delay(200);
 }
 
 void DATA_Init() {

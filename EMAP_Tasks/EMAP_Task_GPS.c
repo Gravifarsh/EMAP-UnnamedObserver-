@@ -18,7 +18,7 @@
 #include "task.h"
 
 #include "minmea.h"
-#include "gps_nmea.h"
+#include "EMAP_Task_GPS.h"
 #include "EMAPConfig.h"
 
 static volatile size_t _dma_carret;

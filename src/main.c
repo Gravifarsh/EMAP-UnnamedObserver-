@@ -40,7 +40,7 @@
 #include "EMAPConfig.h"
 #include "EMAP_Task_IMU.h"
 #include "EMAP_Task_DATA.h"
-#include "gps_nmea.h"
+#include "EMAP_Task_GPS.h"
 
 //	параметры GPS_task
 #define GPS_TASK_STACK_SIZE	(60*configMINIMAL_STACK_SIZE)
@@ -184,7 +184,10 @@ void lidar_test() {
 
 	uint32_t dummy;
 	for(;;) {
-		trace_printf("%d\n", lidar_meas(&lidar, &dummy));
+		uint32_t time = HAL_GetTick();
+		HAL_StatusTypeDef error = lidar_meas(&lidar, &dummy);
+		time = HAL_GetTick() - time;
+		trace_printf("Error: %d; Time: %d\n", error, time);
 
 		trace_printf("%s\n", lidar.rxbuffer);
 	}
@@ -247,16 +250,16 @@ main(int argc, char* argv[])
 
 	/* CREATING TASKS */
 	//xTaskCreateStatic(DATA_Task,	"DATA",	DATA_TASK_STACK_SIZE,		NULL, 1, _DATATaskStack, 	&_DATATaskObj);
-	xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
-	//xTaskCreateStatic(RF_Task, 	"RF", RF_TASK_STACK_SIZE, 	NULL, 1, _RFTaskStack, 	&_RFTaskObj);
-	//xTaskCreateStatic(GPS_Task, "GPS",	GPS_TASK_STACK_SIZE, 	NULL, 1, _GPSTaskStack,	&_GPSTaskObj);
+	//xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
+	xTaskCreateStatic(GPS_Task, "GPS",	GPS_TASK_STACK_SIZE, 	NULL, 1, _GPSTaskStack,	&_GPSTaskObj);
+	//xTaskCreateStatic(lidar_test,	"PUSHKA",	DATA_TASK_STACK_SIZE,		NULL, 1, _DATATaskStack, 	&_DATATaskObj);
 
 	/* CALLING INITS */
 	//DATA_Init();
-
+	//HAL_Delay(300);
 	//SD_Init();
 
-	IMU_Init();
+	//IMU_Init();
 	//HAL_Delay(300);
 
 	//uarts_test();
@@ -264,10 +267,10 @@ main(int argc, char* argv[])
 	//nRF_Init();
 	//HAL_Delay(300);
 
-	//GPS_Init();
-	//HAL_Delay(300);
+	GPS_Init();
+	HAL_Delay(300);
 
-	//TSL_Init();
+	TSL_Init();
 
 	/* STARTING */
 	vTaskStartScheduler();

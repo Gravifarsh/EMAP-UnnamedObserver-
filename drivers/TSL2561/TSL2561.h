@@ -44,6 +44,4 @@ typedef struct
 	tsl2561_adress_t addr;
 }tsl2561_t;
 
-int TSL_Init();
-
 #endif /* TSL2561_TSL2561_H_ */
