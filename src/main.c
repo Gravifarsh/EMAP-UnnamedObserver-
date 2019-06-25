@@ -41,6 +41,7 @@
 #include "EMAP_Task_IMU.h"
 #include "EMAP_Task_DATA.h"
 #include "EMAP_Task_GPS.h"
+#include "EMAP_Task_TSL.h"
 
 //	параметры GPS_task
 #define GPS_TASK_STACK_SIZE	(60*configMINIMAL_STACK_SIZE)
@@ -71,6 +72,7 @@ data_MPU9255_t 		data_MPU9255_1;
 data_MPU9255_t 		data_MPU9255_2;
 data_BMP280_t 		data_BMP280_1;
 data_BMP280_t 		data_BMP280_2;
+data_TSL_t			data_TSL;
 data_GPS_t			data_GPS;
 system_state_t 		system_state;
 system_state_zero_t system_state_zero;
@@ -240,6 +242,7 @@ main(int argc, char* argv[])
 	memset(&data_BMP280_2, 		0x00, sizeof(data_BMP280_2));
 	memset(&data_MPU9255_2,		0x00, sizeof(data_MPU9255_2));
 	memset(&data_GPS,			0x00, sizeof(data_GPS));
+	memset(&data_TSL,			0x00, sizeof(data_TSL));
 	memset(&system_state,		0x00, sizeof(system_state));
 	memset(&system_state_zero,	0x00, sizeof(system_state_zero));
 

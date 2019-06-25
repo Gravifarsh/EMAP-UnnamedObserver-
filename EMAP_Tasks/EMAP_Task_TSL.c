@@ -8,11 +8,20 @@
 #include <stm32f4xx_hal.h>
 #include "diag/Trace.h"
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 #include "EMAP_Task_TSL.h"
+#include "TSL2561.h"
 
 int TSL_Init()
 {
 	int error = 0;
+
+	tsl2561.addr = TSL2561_ADDR_FLOAT;
+	tsl2561.gain = TSL2561_GAIN_16X;
+	tsl2561.intg = TSL2561_INT_100MS;
+	tsl2561.type = TSL2561_TYPE_T;
 
 	i2c_tsl2561.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
 	i2c_tsl2561.Init.ClockSpeed = 200000;
@@ -28,19 +37,16 @@ int TSL_Init()
 
 	tsl2561.hi2c = &i2c_tsl2561;
 	PROCESS_ERROR(HAL_I2C_Init(tsl2561.hi2c));
-	//HAL_Delay(400);
 
 	uint8_t dummy = TSL2561_COMMAND_BIT | TSL2561_BLOCK_BIT | TSL2561_REGISTER_CONTROL;
-	uint8_t buffer = 0x03;
-	PROCESS_ERROR( tsl2561_writeReg(&i2c_tsl2561, dummy, buffer, 1) );
+	PROCESS_ERROR( tsl2561_writeReg(&i2c_tsl2561, dummy, CONTROL_REG_VALUE_POWER_UP, 1) );
 	dummy = TSL2561_COMMAND_BIT | TSL2561_BLOCK_BIT | TSL2561_REGISTER_TIMING;
-	buffer = 0b00000010;
-	PROCESS_ERROR( tsl2561_writeReg(&i2c_tsl2561, dummy, buffer, 1) );
+	PROCESS_ERROR( tsl2561_writeReg(&i2c_tsl2561, dummy, tsl2561.intg, 1) );
 	dummy = TSL2561_COMMAND_BIT | TSL2561_BLOCK_BIT | TSL2561_REGISTER_INTERRUPT;
-	buffer = 0b00000000;
-	PROCESS_ERROR( tsl2561_writeReg(&i2c_tsl2561, dummy, buffer, 1) );
+	PROCESS_ERROR( tsl2561_writeReg(&i2c_tsl2561, dummy, 0x00, 1) );	//IRQ
 	HAL_Delay(500);
 
+/*
 	uint8_t buffer0[2] = { 0 };
 	dummy = TSL2561_COMMAND_BIT | TSL2561_BLOCK_BIT | TSL2561_REGISTER_CHAN0_LOW;
 	PROCESS_ERROR( tsl2561_readReg(&i2c_tsl2561, dummy, &buffer0[1], 1) );
@@ -49,6 +55,7 @@ int TSL_Init()
 	PROCESS_ERROR( tsl2561_readReg(&i2c_tsl2561, dummy, &buffer0[0], 1) );
 	trace_printf("LS CH0: 0x%d", buffer0[0] * 256 + buffer0[1]);
 
+
 	uint8_t buffer1[2] = { 0 };
 	dummy = TSL2561_COMMAND_BIT | TSL2561_BLOCK_BIT | TSL2561_REGISTER_CHAN1_LOW;
 	PROCESS_ERROR( tsl2561_readReg(&i2c_tsl2561, dummy, &buffer1[1], 1) );
@@ -56,8 +63,19 @@ int TSL_Init()
 	dummy = TSL2561_COMMAND_BIT | TSL2561_BLOCK_BIT | TSL2561_REGISTER_CHAN1_HIGH;
 	PROCESS_ERROR( tsl2561_readReg(&i2c_tsl2561, dummy, &buffer1[0], 1) );
 	trace_printf("LS CH1: 0x%d", buffer1[0] * 256 + buffer1[1]);
-
+*/
 end:
 	trace_printf("LS: %d", error);
 	return error;
+}
+
+void TSL_Task()
+{
+	for(;;)
+	{
+		vTaskDelay(500 / portTICK_RATE_MS);
+		tsl2561_readADC(tsl2561, data_TSL.ch0, data_TSL.ch1);
+		tsl2561_calcLux(tsl2561, data_TSL.lux, data_TSL.ch0, data_TSL.ch1);
+		trace_printf("lux: %d", data_TSL.lux);
+	}
 }

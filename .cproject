@@ -480,19 +480,5 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1212437425;ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1212437425.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.20422078;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.641144194">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1212437425;ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1212437425.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1890757089;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.52974095">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.330268966;ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.330268966.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1425934628;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1568517789">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.330268966;ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.330268966.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.1038797766;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.259341936">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-	</storageModule>
+	<storageModule moduleId="scannerConfiguration"/>
 </cproject>
