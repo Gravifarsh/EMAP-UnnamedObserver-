@@ -55,9 +55,8 @@ end:
 	return error;
 }
 
-void tsl2561_calcLux(tsl2561_t * htsl, unsigned int lux,uint16_t * ch0, uint16_t * ch1)
+void tsl2561_calcLux(tsl2561_t * htsl, unsigned int * lux,uint16_t * ch0, uint16_t * ch1)
 {
-	HAL_StatusTypeDef error = 0;
 	unsigned long scale;
 	unsigned long channel0;
 	unsigned long channel1;
@@ -78,8 +77,8 @@ void tsl2561_calcLux(tsl2561_t * htsl, unsigned int lux,uint16_t * ch0, uint16_t
 	if (!htsl->gain)
 		scale = scale << 4;
 
-	channel0 = (*ch0 * scale) >> CH_SCALE;
-	channel1 = (*ch1 * scale) >> CH_SCALE;
+	channel0 = ((*ch0) * scale) >> CH_SCALE;
+	channel1 = ((*ch1) * scale) >> CH_SCALE;
 
 	unsigned long ratio1 = 0;
 	if (channel0 != 0) ratio1 = (channel1 << (RATIO_SCALE+1)) / channel0;
@@ -133,5 +132,5 @@ void tsl2561_calcLux(tsl2561_t * htsl, unsigned int lux,uint16_t * ch0, uint16_t
 	// round lsb (2^(LUX_SCALE−1))
 	temp += (1 << (LUX_SCALE - 1));
 	// strip off fractional portion
-	lux = temp >> LUX_SCALE;
+	*lux = temp >> LUX_SCALE;
 }

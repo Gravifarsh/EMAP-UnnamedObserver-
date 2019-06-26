@@ -124,6 +124,6 @@ typedef struct
 HAL_StatusTypeDef tsl2561_readReg(tsl2561_t * htsl, uint8_t regAddr, uint8_t * buffer, uint8_t size);
 HAL_StatusTypeDef tsl2561_writeReg(tsl2561_t * htsl, uint8_t regAddr, uint8_t buffer, uint8_t size);
 HAL_StatusTypeDef tsl2561_readADC(tsl2561_t * htsl, uint16_t * ch0, uint16_t * ch1);
-void tsl2561_calcLux(tsl2561_t * htsl, unsigned int lux,uint16_t * ch0, uint16_t * ch1);
+void tsl2561_calcLux(tsl2561_t * htsl, unsigned int * lux,uint16_t * ch0, uint16_t * ch1);
 
 #endif /* TSL2561_TSL2561_H_ */
