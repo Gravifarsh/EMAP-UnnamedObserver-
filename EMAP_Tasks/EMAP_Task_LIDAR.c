@@ -15,9 +15,14 @@ lidar_t				lidar;
 void LIDAR_Task() {
 	uint32_t dummy;
 	for(;;) {
-		trace_printf("%d\n", lidar_meas(&lidar, &dummy));
+		trace_printf("%d\n", lidar_meas(&lidar));
 
-		trace_printf("%s\n", lidar.rxbuffer);
+		while(lidar_tryParseMeasRes(&lidar, &dummy) != HAL_OK) {
+			trace_printf("%s\n\n\n", lidar.rxbuffer);
+		}
+
+		trace_printf("%d\n", lidar_dropMeas(&lidar));
+		trace_printf("Distance: %d\n", dummy);
 	}
 }
 

@@ -7,6 +7,7 @@
 #include "lidar.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 #define COM_TDCINIT ("_tdcinit;")
 #define COM_MEAS ("_meas;")
@@ -173,7 +174,7 @@ HAL_StatusTypeDef lidar_setRepIntFreq(lidar_t* dev, uint32_t freq) {
 	else return HAL_ERROR;
 }
 
-HAL_StatusTypeDef lidar_meas(lidar_t* dev, uint32_t* res) {
+HAL_StatusTypeDef lidar_meas(lidar_t* dev) {
 	memset(dev->rxbuffer, 0x00, LIDAR_RXBUF_SIZE);
 
 	HAL_UART_Transmit(dev->huart, COM_MEAS, strlen(COM_MEAS), TX_TIMEOUT);
@@ -191,9 +192,9 @@ HAL_StatusTypeDef lidar_tryParseMeasRes(lidar_t* dev, uint32_t* res) {
 
 	if(!dis) return HAL_ERROR;
 
-	dis += strlen(RES_DISTANCE);
+	dis = dis + strlen(RES_DISTANCE);
 
-	float tmp = atoff(dis);
+	double tmp = atof(dis);
 	*res = (uint32_t)(tmp * 1000);
 
 	return HAL_OK;

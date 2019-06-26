@@ -164,7 +164,7 @@ main(int argc, char* argv[])
 	//xTaskCreateStatic(DATA_Task,	"DATA",	DATA_TASK_STACK_SIZE,		NULL, 1, _DATATaskStack, 	&_DATATaskObj);
 	//xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
 	//xTaskCreateStatic(GPS_Task, "GPS",	GPS_TASK_STACK_SIZE, 	NULL, 1, _GPSTaskStack,	&_GPSTaskObj);
-	//xTaskCreateStatic(LIDAR_Task,	"LIDAR",	LIDAR_TASK_STACK_SIZE,		NULL, 1, _LIDARTaskStack, 	&_LIDARTaskObj);
+	xTaskCreateStatic(LIDAR_Task,	"LIDAR",	LIDAR_TASK_STACK_SIZE,		NULL, 1, _LIDARTaskStack, 	&_LIDARTaskObj);
 
 	/* CALLING INITS */
 	//DATA_Init();
@@ -175,7 +175,7 @@ main(int argc, char* argv[])
 
 	//TSL_Init();
 
-	//LIDAR_Init();
+	LIDAR_Init();
 
 	/* STARTING */
 	vTaskStartScheduler();
