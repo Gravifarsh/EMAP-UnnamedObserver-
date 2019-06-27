@@ -9,7 +9,7 @@
 #include "stm32f4xx_hal_i2c.h"
 #include "stm32f4xx_hal_spi.h"
 
-#include "TSL2561.h"
+#include "../drivers/TSL2581/TSL2581.h"
 #include "bmp280.h"
 #include "nRF24L01P.h"
 #include "lidar.h"
@@ -112,8 +112,8 @@ extern rscs_bmp280_descriptor_t * IMU_bmp280_2;
 extern SPI_HandleTypeDef	spi_nRF24L01;
 extern nRF24L01P			nRF24;
 
-extern I2C_HandleTypeDef	i2c_tsl2561;
-extern tsl2561_t			tsl2561;
+extern I2C_HandleTypeDef	i2c_tsl2581;
+extern tsl2581_t			tsl2581;
 
 extern UART_HandleTypeDef	uart_lidar;
 extern lidar_t				lidar;

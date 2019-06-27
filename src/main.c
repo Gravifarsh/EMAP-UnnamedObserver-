@@ -58,6 +58,11 @@ static StaticTask_t	_DATATaskObj;
 static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
 static StaticTask_t	_IMUTaskObj;
 
+//	параметры TSL_task
+#define TSL_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
+static StackType_t	_TSLTaskStack[TSL_TASK_STACK_SIZE];
+static StaticTask_t	_TSLTaskObj;
+
 I2C_HandleTypeDef 	i2c_IMU_1;
 I2C_HandleTypeDef 	i2c_IMU_2;
 SPI_HandleTypeDef	spi_nRF24L01;
@@ -252,10 +257,11 @@ main(int argc, char* argv[])
 	memset(&system_prev_state, 	0x00, sizeof(system_prev_state));
 
 	/* CREATING TASKS */
-	//xTaskCreateStatic(DATA_Task,	"DATA",	DATA_TASK_STACK_SIZE,		NULL, 1, _DATATaskStack, 	&_DATATaskObj);
-	//xTaskCreateStatic(IMU_Task, "IMU",	IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,	&_IMUTaskObj);
-	xTaskCreateStatic(GPS_Task, "GPS",	GPS_TASK_STACK_SIZE, 	NULL, 1, _GPSTaskStack,	&_GPSTaskObj);
-	//xTaskCreateStatic(lidar_test,	"PUSHKA",	DATA_TASK_STACK_SIZE,		NULL, 1, _DATATaskStack, 	&_DATATaskObj);
+	//xTaskCreateStatic(DATA_Task,	"DATA",		DATA_TASK_STACK_SIZE,	NULL, 1, _DATATaskStack,	&_DATATaskObj);
+	//xTaskCreateStatic(IMU_Task, 	"IMU",		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,		&_IMUTaskObj);
+	//xTaskCreateStatic(GPS_Task, 	"GPS",		GPS_TASK_STACK_SIZE, 	NULL, 1, _GPSTaskStack,		&_GPSTaskObj);
+	//xTaskCreateStatic(lidar_test,	"PUSHKA",	DATA_TASK_STACK_SIZE,	NULL, 1, _DATATaskStack, 	&_DATATaskObj);
+	xTaskCreateStatic(TSL_Task, 	"TheLight", TSL_TASK_STACK_SIZE, 	NULL, 1, _TSLTaskStack,		&_TSLTaskObj);
 
 	/* CALLING INITS */
 	//DATA_Init();
@@ -270,10 +276,11 @@ main(int argc, char* argv[])
 	//nRF_Init();
 	//HAL_Delay(300);
 
-	GPS_Init();
+	//GPS_Init();
 	HAL_Delay(300);
 
 	TSL_Init();
+	HAL_Delay(300);
 
 	/* STARTING */
 	vTaskStartScheduler();
