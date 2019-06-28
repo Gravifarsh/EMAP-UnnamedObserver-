@@ -10,6 +10,8 @@
 
 #include "EMAPConfig.h"
 
+#define LIDAR_RES_TIMEOUT (80)
+
 void LIDAR_Task();
 
 void LIDAR_Init();

@@ -12,17 +12,40 @@ UART_HandleTypeDef	uart_lidar;
 DMA_HandleTypeDef	dma_lidar;
 lidar_t				lidar;
 
-void LIDAR_Task() {
-	uint32_t dummy;
-	for(;;) {
-		trace_printf("%d\n", lidar_meas(&lidar));
+data_LIDAR_t data_LIDAR;
 
-		while(lidar_tryParseMeasRes(&lidar, &dummy) != HAL_OK) {
-			trace_printf("%s\n\n\n", lidar.rxbuffer);
+void LIDAR_Task() {
+	uint32_t res, tickstart, tick;
+	for(;;) {
+taskENTER_CRITICAL();
+		lidar_meas(&lidar); // Запрашиваем измерение
+		tickstart = HAL_GetTick(); // Запоминаем, когда это сделали
+taskEXIT_CRITICAL();
+
+		for(;;) {
+			vTaskDelay(20 / portTICK_RATE_MS); // Спим - нет смысла пытаться получить ответ постоянно, дадим другим поработать
+taskENTER_CRITICAL();
+			tick = HAL_GetTick(); // Узнаём нынешнее время
+taskEXIT_CRITICAL();
+			HAL_StatusTypeDef error = lidar_tryParseMeasRes(&lidar, &res); // Пытаемся обработать ответ
+			if(error == HAL_OK) { // Валидный ответ
+taskENTER_CRITICAL();
+				data_LIDAR.time = HAL_GetTick();
+				data_LIDAR.dist = res;
+taskEXIT_CRITICAL();
+				//trace_printf("Distance: %d; Time: %d\n", res, tick - tickstart);
+				writeDataLidar(); // Сгружаем данные
+				break;
+			}
+			else if(error == HAL_ERROR || (tick - tickstart) > LIDAR_RES_TIMEOUT) // Ошибка или таймаут - тикаем
+				break;
+
+			//trace_printf("%s\n\n\n", lidar.rxbuffer);
 		}
 
-		trace_printf("%d\n", lidar_dropMeas(&lidar));
-		trace_printf("Distance: %d\n", dummy);
+taskENTER_CRITICAL();
+		lidar_dropMeas(&lidar); // Бросаем транзакцию
+taskEXIT_CRITICAL();
 	}
 }
 

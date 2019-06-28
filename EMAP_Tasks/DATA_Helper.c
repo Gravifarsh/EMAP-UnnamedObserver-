@@ -214,4 +214,18 @@ taskENTER_CRITICAL();
 taskEXIT_CRITICAL();
 }
 
+void writeDataLidar()
+{
+	uint8_t buffer[sizeof(data_LIDAR_t) + 2];
+
+taskENTER_CRITICAL();
+	buffer[0] = 0xF7;
+	memcpy(buffer + 1, &data_LIDAR, sizeof(data_LIDAR_t));
+	buffer[sizeof(data_LIDAR_t) + 1] = 0xF7;
+
+	drop(buffer, sizeof(data_LIDAR_t) + 2);
+	send(buffer, sizeof(data_LIDAR_t) + 2);
+taskEXIT_CRITICAL();
+}
+
 

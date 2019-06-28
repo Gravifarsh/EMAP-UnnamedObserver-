@@ -20,5 +20,6 @@ void writeDataMPU(I2C_HandleTypeDef * hi2c);
 void writeSysState();
 void writeSysStateZero();
 void writeDataTSL();
+void writeDataLidar();
 
 #endif /* INCLUDE_EMAP_TASK_SD_H_ */

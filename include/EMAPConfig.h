@@ -105,7 +105,7 @@ typedef struct
 
 typedef struct
 {
-	float time;
+	float time; // TODO: uint32_t in ms
 	float coords[3];
 }data_GPS_t;
 
@@ -115,7 +115,13 @@ typedef struct
 	uint16_t ch0;		//Visible + Infrared
 	uint16_t ch1;		//Infrared only
 	unsigned int lux;
-}data_TSL_t;
+} data_TSL_t;
+
+typedef struct
+{
+	float time;
+	uint32_t dist;
+} data_LIDAR_t;
 
 /*****GLOBAL VARIABLES*****/
 
@@ -142,6 +148,7 @@ extern data_MPU9255_t 		data_MPU9255_2;
 extern data_BMP280_t 		data_BMP280_1;
 extern data_BMP280_t 		data_BMP280_2;
 extern data_TSL_t			data_TSL;
+extern data_LIDAR_t			data_LIDAR;
 extern system_state_t 		system_state;
 extern system_state_zero_t 	system_state_zero;
 

@@ -46,27 +46,22 @@
 
 
 //	параметры GPS_task
-#define GPS_TASK_STACK_SIZE	(60*configMINIMAL_STACK_SIZE)
+#define GPS_TASK_STACK_SIZE	(20*configMINIMAL_STACK_SIZE)
 static StackType_t	_GPSTaskStack[GPS_TASK_STACK_SIZE];
 static StaticTask_t	_GPSTaskObj;
 
-//	параметры DATA_task
-#define DATA_TASK_STACK_SIZE	(60*configMINIMAL_STACK_SIZE)
-static StackType_t	_DATATaskStack[DATA_TASK_STACK_SIZE];
-static StaticTask_t	_DATATaskObj;
-
 //	параметры IMU_task
-#define IMU_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
+#define IMU_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
 static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
 static StaticTask_t	_IMUTaskObj;
 
 //	параметры TSL_task
-#define TSL_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
+#define TSL_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
 static StackType_t	_TSLTaskStack[TSL_TASK_STACK_SIZE];
 static StaticTask_t	_TSLTaskObj;
 
 //	параметры LIDAR_task
-#define LIDAR_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
+#define LIDAR_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
 static StackType_t	_LIDARTaskStack[LIDAR_TASK_STACK_SIZE];
 static StaticTask_t	_LIDARTaskObj;
 
@@ -170,22 +165,21 @@ main(int argc, char* argv[])
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
 
 	/* CREATING TASKS */
-	//xTaskCreateStatic(DATA_Task,	"DATA",		DATA_TASK_STACK_SIZE,	NULL, 1, _DATATaskStack,	&_DATATaskObj);
-	xTaskCreateStatic(IMU_Task, 	"IMU",		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack,		&_IMUTaskObj);
-	//xTaskCreateStatic(GPS_Task, 	"GPS",		GPS_TASK_STACK_SIZE, 	NULL, 1, _GPSTaskStack,		&_GPSTaskObj);
-	//xTaskCreateStatic(TSL_Task, 	"TSL", TSL_TASK_STACK_SIZE, 	NULL, 1, _TSLTaskStack,		&_TSLTaskObj);
-	//xTaskCreateStatic(LIDAR_Task,	"LIDAR",	LIDAR_TASK_STACK_SIZE,		NULL, 1, _LIDARTaskStack, 	&_LIDARTaskObj);
+	xTaskCreateStatic(IMU_Task, 	"IMU",		IMU_TASK_STACK_SIZE, 		NULL, 4, _IMUTaskStack,		&_IMUTaskObj);
+	xTaskCreateStatic(GPS_Task, 	"GPS",		GPS_TASK_STACK_SIZE, 		NULL, 1, _GPSTaskStack,		&_GPSTaskObj);
+	xTaskCreateStatic(TSL_Task, 	"TSL", 		TSL_TASK_STACK_SIZE, 		NULL, 2, _TSLTaskStack,		&_TSLTaskObj);
+	xTaskCreateStatic(LIDAR_Task,	"LIDAR",	LIDAR_TASK_STACK_SIZE,		NULL, 3, _LIDARTaskStack, 	&_LIDARTaskObj);
 
 	/* CALLING INITS */
 	DATA_Init();
 
 	IMU_Init();
 
-	//GPS_Init();
+	GPS_Init();
 
-	//TSL_Init();
+	TSL_Init();
 
-	//LIDAR_Init();
+	LIDAR_Init();
 
 	/* STARTING */
 	vTaskStartScheduler();
