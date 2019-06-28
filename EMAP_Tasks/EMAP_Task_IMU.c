@@ -129,17 +129,17 @@ uint8_t getStaticShifts()
 	float gyroStaticShifts[3] 	= { 0 };
 	float accelStaticShifts[3] 	= { 0 };
 
+taskENTER_CRITICAL();
+
 	PROCESS_ERROR( getGyroStaticShifts(&i2c_IMU_1,gyroStaticShifts) );
 	PROCESS_ERROR( getAccelStaticShift(&i2c_IMU_1,gyroStaticShifts, accelStaticShifts) );
 
-taskENTER_CRITICAL();
 	for (int i = 0; i < 3; i++)
 	{
 		system_state_zero.gyro_staticShift1[i] = gyroStaticShifts[i];
 		system_state_zero.accel_staticShift1[i] = accelStaticShifts[i];
 	}
 taskEXIT_CRITICAL();
-
 
 	PROCESS_ERROR( getGyroStaticShifts(&i2c_IMU_2,gyroStaticShifts) );
 	PROCESS_ERROR( getAccelStaticShift(&i2c_IMU_2,gyroStaticShifts, accelStaticShifts) );
@@ -150,11 +150,10 @@ taskENTER_CRITICAL();
 		system_state_zero.gyro_staticShift2[i] = gyroStaticShifts[i];
 		system_state_zero.accel_staticShift2[i] = accelStaticShifts[i];
 	}
-taskEXIT_CRITICAL();
 
 end:
+taskEXIT_CRITICAL();
 	return error;
-
 }
 
 uint8_t updateIMU(I2C_HandleTypeDef * hi2c)
@@ -169,14 +168,14 @@ uint8_t updateIMU(I2C_HandleTypeDef * hi2c)
 		float gyro[3] = { 0 };
 		float compass[3] = { 0 };
 
+
+taskENTER_CRITICAL();
 		//	собираем данные
 		PROCESS_ERROR(mpu9255_readIMU(hi2c, accelData, gyroData));
 		PROCESS_ERROR(mpu9255_readCompass(hi2c, compassData));
 		mpu9255_recalcAccel(accelData, accel);
 		mpu9255_recalcGyro(gyroData, gyro);
 		mpu9255_recalcCompass(compassData, compass);
-
-taskENTER_CRITICAL();
 
 		float _time = (float)HAL_GetTick() / 1000;
 
@@ -191,7 +190,6 @@ taskENTER_CRITICAL();
 				data_MPU9255_2.gyro[k] = gyro[k];
 				data_MPU9255_2.compass[k] = compass[k];
 			}
-taskEXIT_CRITICAL();
 		}
 
 		else
@@ -242,10 +240,10 @@ taskENTER_CRITICAL();
 			data_MPU9255_isc.compass[0] = compass_ISC[0];
 			data_MPU9255_isc.compass[1] = compass_ISC[1];
 			data_MPU9255_isc.compass[2] = compass_ISC[2];
-taskEXIT_CRITICAL();
 		}
 
 end:
+taskEXIT_CRITICAL();
 		return error;
 }
 
@@ -258,12 +256,13 @@ uint8_t updateBMP280(I2C_HandleTypeDef * hi2c, rscs_bmp280_descriptor_t ** dbmp)
 	float temp_f = 0;
 	float height = 0;
 
+taskENTER_CRITICAL();
 	PROCESS_ERROR( rscs_bmp280_read(*dbmp, &pressure, &temp));
 	rscs_bmp280_calculate(IMU_bmp280_calibration_values_1, pressure, temp, &pressure_f, &temp_f);
 
-taskENTER_CRITICAL();
 	float zero_pressure = system_state_zero.pressure;
 taskEXIT_CRITICAL();
+
 	height = 18400 * log(zero_pressure / pressure_f);
 
 taskENTER_CRITICAL();
@@ -288,9 +287,10 @@ taskENTER_CRITICAL();
 		data_BMP280_2.temperature = temp_f;
 		data_BMP280_2.height = height;
 	}
-taskEXIT_CRITICAL();
 
 end:
+taskEXIT_CRITICAL();
+
 	return error;
 }
 
@@ -304,75 +304,76 @@ void savePrevState()
 	taskEXIT_CRITICAL();
 }
 
-uint8_t updateAll()
-{
-	uint8_t error = 0;
-
-//	trace_printf("MPU1\n");
-	PROCESS_ERROR( (system_state.MPU9255_1 = updateIMU(&i2c_IMU_1)) );
-//	trace_printf("MPU2\n");
-	PROCESS_ERROR( (system_state.MPU9255_2 = updateIMU(&i2c_IMU_2)) );
-//	trace_printf("SavePrevState\n");
-	savePrevState();
-//	trace_printf("BMP1\n");
-	PROCESS_ERROR( (system_state.BMP280_1 = updateBMP280(&i2c_IMU_1, &IMU_bmp280_1)) );
-//	trace_printf("BMP2\n");
-	PROCESS_ERROR( (system_state.BMP280_2 = updateBMP280(&i2c_IMU_2, &IMU_bmp280_2)) );
-
-end:
-	return error;
-}
-
 static uint8_t setSysStateZero()
 {
 	uint8_t error = 0;
 
-	PROCESS_ERROR( getStaticShifts() );
-	PROCESS_ERROR( updateAll() );
-
 taskENTER_CRITICAL();
+	PROCESS_ERROR( getStaticShifts() );
+	//PROCESS_ERROR( updateAll() ); TODO
 	system_state_zero.pressure = data_BMP280_1.pressure;
 	for(int i = 0; i < 4; i++)
 		system_state_zero.quaternion[i] = data_MPU9255_isc.quaternion[i];
-taskEXIT_CRITICAL();
-
 end:
+taskEXIT_CRITICAL();
 	return error;
 }
 
 void IMU_Task()
 {
-	uint8_t error = 0;
-	if( (error = setSysStateZero() == EMAP_ERROR_NONE) )
+	if( setSysStateZero() == EMAP_ERROR_NONE )
 		system_state.GlobalState = EMAP_State_Ready_To_Load;
 /*	trace_printf("Zero State:\nPressure: %d.%d\nQuaternion: %d.%d, %d.%d, %d.%d, %d.%d\n===============\n", INTIFY(system_state_zero.pressure), INTIFY(system_state_zero.quaternion[0]),
 			INTIFY(system_state_zero.quaternion[1]),
 			INTIFY(system_state_zero.quaternion[2]),
 			INTIFY(system_state_zero.quaternion[3]));
 */
-	if( (system_state.MPU9255_1 | system_state.BMP280_1 | system_state.MPU9255_2 | system_state.BMP280_2) ==  EMAP_ERROR_NONE )
+	for(;;)
 	{
-		uint32_t time = HAL_GetTick();
-		for(;;)
-		{
-			trace_printf("IMU TASK TIME ELAPSED: %d\n", HAL_GetTick() - time);
-			time = HAL_GetTick();
-			//trace_puts("IMU TASK");
-			//vTaskDelay(10 / portTICK_RATE_MS);
+taskENTER_CRITICAL();
+		if(!system_state.MPU9255_1)
+			system_state.MPU9255_1 = updateIMU(&i2c_IMU_1);
+		else
+			system_state.MPU9255_1 = mpu9255_init(&i2c_IMU_1, I2C1);
+taskEXIT_CRITICAL();
 
-			updateAll();
-			//trace_printf("Pressure1: %d.%d\nTemp1: %d.%d\n", INTIFY(data_BMP280_1.pressure), INTIFY(data_BMP280_1.temperature));
-			//trace_printf("Accel1: %d.%d, %d.%d, %d.%d\n", INTIFY(data_MPU9255_1.accel[0]), INTIFY(data_MPU9255_1.accel[1]), INTIFY(data_MPU9255_1.accel[2]));
-			//trace_printf("Gyro1: %d.%d, %d.%d, %d.%d\n", INTIFY(data_MPU9255_1.gyro[0]), INTIFY(data_MPU9255_1.gyro[1]), INTIFY(data_MPU9255_1.gyro[2]));
-			//trace_printf("Pressure2: %d.%d\nTemp2: %d.%d\n", INTIFY(data_BMP280_2.pressure), INTIFY(data_BMP280_2.temperature));
-			//trace_printf("Accel2: %d.%d, %d.%d, %d.%d\n", INTIFY(data_MPU9255_2.accel[0]), INTIFY(data_MPU9255_2.accel[1]), INTIFY(data_MPU9255_2.accel[2]));
-			//trace_printf("Gyro1: %d.%d, %d.%d, %d.%d\n===========\n", INTIFY(data_MPU9255_1.gyro[0]), INTIFY(data_MPU9255_1.gyro[1]), INTIFY(data_MPU9255_1.gyro[2]));
-		}
-	}
-	else
-	{
-		trace_puts("IMU_Task shut down!");
-		trace_printf("MPU1: %d\nMPU2: %d\nBMP1: %d\nBMP2: %d\n", system_state.MPU9255_1, system_state.MPU9255_2, system_state.BMP280_1, system_state.BMP280_2);
-		vTaskDelete(NULL);
+		writeDataMPU(&i2c_IMU_1);
+
+taskENTER_CRITICAL();
+		if(!system_state.MPU9255_2)
+			system_state.MPU9255_2 = updateIMU(&i2c_IMU_2);
+		else
+			system_state.MPU9255_2 = mpu9255_init(&i2c_IMU_2, I2C2);
+taskEXIT_CRITICAL();
+
+		writeDataMPU(&i2c_IMU_2);
+
+taskENTER_CRITICAL();
+		if(!system_state.BMP280_1)
+			system_state.BMP280_1 = updateBMP280(&i2c_IMU_1, &IMU_bmp280_1);
+		else
+			system_state.BMP280_1 = bmp280_init(&i2c_IMU_1, &IMU_bmp280_1);
+taskEXIT_CRITICAL();
+
+		writeDataBMP(&i2c_IMU_1);
+
+taskENTER_CRITICAL();
+		if(!system_state.BMP280_2)
+			system_state.BMP280_2 = updateBMP280(&i2c_IMU_2, &IMU_bmp280_2);
+		else
+			system_state.BMP280_2 = bmp280_init(&i2c_IMU_2, &IMU_bmp280_2);
+taskEXIT_CRITICAL();
+
+		writeDataBMP(&i2c_IMU_2);
+
+		vTaskDelay(10 / portTICK_RATE_MS);
+
+
+		//trace_printf("Accel1: %d.%d, %d.%d, %d.%d\n", INTIFY(data_MPU9255_1.accel[0]), INTIFY(data_MPU9255_1.accel[1]), INTIFY(data_MPU9255_1.accel[2]));
+		//trace_printf("Gyro1: %d.%d, %d.%d, %d.%d\n", INTIFY(data_MPU9255_1.gyro[0]), INTIFY(data_MPU9255_1.gyro[1]), INTIFY(data_MPU9255_1.gyro[2]));
+		//trace_printf("Pressure2: %d.%d\nTemp2: %d.%d\n", INTIFY(data_BMP280_2.pressure), INTIFY(data_BMP280_2.temperature));
+		//trace_printf("Pressure1: %d.%d\nTemp1: %d.%d\n", INTIFY(data_BMP280_1.pressure), INTIFY(data_BMP280_1.temperature));
+		//trace_printf("Accel2: %d.%d, %d.%d, %d.%d\n", INTIFY(data_MPU9255_2.accel[0]), INTIFY(data_MPU9255_2.accel[1]), INTIFY(data_MPU9255_2.accel[2]));
+		//trace_printf("Gyro1: %d.%d, %d.%d, %d.%d\n===========\n", INTIFY(data_MPU9255_1.gyro[0]), INTIFY(data_MPU9255_1.gyro[1]), INTIFY(data_MPU9255_1.gyro[2]));
 	}
 }

@@ -6,6 +6,7 @@
  */
 
 #include "EMAP_Task_TSL.h"
+#include "EMAPConfig.h"
 
 void TSL_Init()
 {
@@ -36,13 +37,20 @@ void TSL_Init()
 	trace_printf("LS: %d\n", error);
 }
 
+
+
 void TSL_Task()
 {
 	for(;;)
 	{
-		//vTaskDelay(500 / portTICK_RATE_MS);
+		vTaskDelay(250 / portTICK_RATE_MS);
+	taskENTER_CRITICAL();
 		tsl2581_readADC(&tsl2581, &data_TSL.ch0, &data_TSL.ch1);
+		data_TSL.time = HAL_GetTick();
 		tsl2581_calcLux(&tsl2581, &data_TSL.lux, &data_TSL.ch0, &data_TSL.ch1);
-		trace_printf("lux: %d\nch0: %d\nch1: %d\n===========\n", data_TSL.lux, data_TSL.ch0, data_TSL.ch1);
+	taskEXIT_CRITICAL();
+		vTaskDelay(250 / portTICK_RATE_MS);
+		writeDataTSL();
+		//trace_printf("lux: %d\nch0: %d\nch1: %d\n===========\n", data_TSL.lux, data_TSL.ch0, data_TSL.ch1);
 	}
 }

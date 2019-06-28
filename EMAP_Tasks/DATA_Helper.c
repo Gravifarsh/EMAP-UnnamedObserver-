@@ -5,16 +5,10 @@
  *      Author: developer
  */
 
-#include "stdint.h"
-#include "inttypes.h"
-
-#include "diag/Trace.h"
-#include "FreeRTOS.h"
-#include "task.h"
+#include "DATA_Helper.h"
 
 #include "dump.h"
 
-#include "EMAP_Task_DATA.h"
 
 /* FOR SD */
 
@@ -119,12 +113,14 @@ void DATA_Init() {
 void writeSysStateZero()
 {
 	uint8_t buffer[sizeof(system_state_zero_t) + 2];
+taskENTER_CRITICAL();
 
 	buffer[0] = 0xF9;
 	memcpy(&buffer[2], &system_state_zero, sizeof(system_state_zero_t));
 	buffer[sizeof(system_state_zero_t) + 1] = 0xF9;
 
 	drop(buffer, sizeof(system_state_zero_t) + 2);
+taskEXIT_CRITICAL();
 }
 
 void writeSysState()
@@ -138,10 +134,10 @@ taskENTER_CRITICAL();
 	buffer[0] = 0xFF;
 	memcpy(buffer + 1, &system_state, sizeof(system_state_t));
 	buffer[sizeof(system_state_t) + 1] = 0xFF;
-taskEXIT_CRITICAL();
 
 	drop(buffer, sizeof(system_state_t) + 2);
 	send(buffer, sizeof(system_state_t) + 2);
+taskEXIT_CRITICAL();
 }
 
 void writeDataMPU(I2C_HandleTypeDef * hi2c)
@@ -161,10 +157,11 @@ taskENTER_CRITICAL();
 		memcpy(buffer + 1, &data_MPU9255_2, sizeof(data_MPU9255_t));
 		buffer[sizeof(data_MPU9255_2) + 1] = 0xFB;
 	}
-taskEXIT_CRITICAL();
 
 	drop(buffer, sizeof(data_MPU9255_t) + 2);
 	send(buffer, sizeof(data_MPU9255_t) + 2);
+
+taskEXIT_CRITICAL();
 }
 
 void writeDataIsc()
@@ -175,10 +172,10 @@ taskENTER_CRITICAL();
 	buffer[0] = 0xFC;
 	memcpy(buffer + 1, &data_MPU9255_isc, sizeof(data_MPU9255_t));
 	buffer[sizeof(data_MPU9255_t) + 1] = 0xFC;
-taskEXIT_CRITICAL();
 
 	drop(buffer, sizeof(data_MPU9255_t) + 2);
 	send(buffer, sizeof(data_MPU9255_t) + 2);
+taskEXIT_CRITICAL();
 }
 
 void writeDataBMP()
@@ -189,55 +186,32 @@ taskENTER_CRITICAL();
 	buffer[0] = 0xFD;
 	memcpy(buffer + 1, &data_BMP280_1, sizeof(data_BMP280_t));
 	buffer[sizeof(data_BMP280_t) + 1] = 0xFD;
-taskEXIT_CRITICAL();
 
 	drop(buffer, sizeof(data_BMP280_t) + 2);
 	send(buffer, sizeof(data_BMP280_t) + 2);
 
-taskENTER_CRITICAL();
 	buffer[0] = 0xFE;
 	memcpy(buffer + 1, &data_BMP280_2, sizeof(data_BMP280_t));
 	buffer[sizeof(data_BMP280_t) + 1] = 0xFE;
-taskEXIT_CRITICAL();
+
 
 	drop(buffer, sizeof(data_BMP280_t) + 2);
 	send(buffer, sizeof(data_BMP280_t) + 2);
+taskEXIT_CRITICAL();
 }
 
-void DATA_Task()
+void writeDataTSL()
 {
-	if(stream_file.file_opened == false)
-	{
-		trace_printf("SD_Task Shut Down!\n");
-		vTaskDelete(NULL);
-	}
+	uint8_t buffer[sizeof(data_TSL_t) + 2];
 
-	trace_printf("SD State: %d\n", system_state.SD);
+taskENTER_CRITICAL();
+	buffer[0] = 0xF8;
+	memcpy(buffer + 1, &data_TSL, sizeof(data_TSL_t));
+	buffer[sizeof(data_TSL_t) + 1] = 0xF8;
 
-
-	uint32_t time = HAL_GetTick();
-	for(;;)
-	{
-		trace_printf("DATA TASK TIME ELAPSED: %d\n", HAL_GetTick() - time);
-		time = HAL_GetTick();
-
-		if(isZeroWrote)
-		{
-			writeSysState();
-			writeDataMPU(&i2c_IMU_1);
-			writeDataMPU(&i2c_IMU_2);
-			writeDataIsc();
-			writeDataBMP();
-		}
-		else
-		{
-			if(system_state_zero.pressure)
-			{
-				writeSysStateZero();
-				isZeroWrote = true;
-			}
-		}
-	}
+	drop(buffer, sizeof(data_TSL_t) + 2);
+	send(buffer, sizeof(data_TSL_t) + 2);
+taskEXIT_CRITICAL();
 }
 
 

@@ -14,6 +14,8 @@
 
 #include "diag/Trace.h"
 
+#include "DATA_Helper.h"
+
 #include "TSL2581.h"
 #include "bmp280.h"
 #include "nRF24L01P.h"
@@ -92,6 +94,7 @@ typedef struct
 
 typedef struct
 {
+	float time;
 	float pressure;
 	float gyro_staticShift1[3];
 	float accel_staticShift1[3];
@@ -102,11 +105,13 @@ typedef struct
 
 typedef struct
 {
+	float time;
 	float coords[3];
 }data_GPS_t;
 
 typedef struct
 {
+	float time;
 	uint16_t ch0;		//Visible + Infrared
 	uint16_t ch1;		//Infrared only
 	unsigned int lux;

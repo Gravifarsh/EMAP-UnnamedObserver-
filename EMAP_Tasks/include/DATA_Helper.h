@@ -14,6 +14,11 @@
 
 void DATA_Init();
 
-void DATA_Task();
+void writeDataBMP();
+void writeDataIsc();
+void writeDataMPU(I2C_HandleTypeDef * hi2c);
+void writeSysState();
+void writeSysStateZero();
+void writeDataTSL();
 
 #endif /* INCLUDE_EMAP_TASK_SD_H_ */
