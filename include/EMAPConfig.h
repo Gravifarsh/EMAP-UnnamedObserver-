@@ -9,7 +9,12 @@
 #include "stm32f4xx_hal_i2c.h"
 #include "stm32f4xx_hal_spi.h"
 
-#include "../drivers/TSL2581/TSL2581.h"
+#include "task.h"
+#include "FreeRTOS.h"
+
+#include "diag/Trace.h"
+
+#include "TSL2581.h"
 #include "bmp280.h"
 #include "nRF24L01P.h"
 #include "lidar.h"
@@ -17,12 +22,17 @@
 // if error set value and go to end
 #define PROCESS_ERROR(x) if (0 != (error = (x))) { goto end; }
 
+// fill struct with zero
+#define FILL_STRUCT_WITH_ZERO(x) memset(&x,	0x00, sizeof(x));
+
 //Using modules (1 using / 0 not using)
 #define USE_MPU9255				1
 #define USE_EXTERNAL_BMP280		0
 #define USE_SD					1
 #define USE_GPS					0
 #define USE_nRF24L01			0
+#define USE_TSL2561				0
+#define USE_LIDAR				0
 
 /*****STRUCTURES*****/
 typedef enum

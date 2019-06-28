@@ -27,7 +27,9 @@ HAL_StatusTypeDef lidar_tdcInit(lidar_t*);
 HAL_StatusTypeDef lidar_setMeasFreq(lidar_t*, uint32_t);
 HAL_StatusTypeDef lidar_setRepIntFreq(lidar_t*, uint32_t);
 
-HAL_StatusTypeDef lidar_meas(lidar_t*, uint32_t*);
+HAL_StatusTypeDef lidar_meas(lidar_t*);
+HAL_StatusTypeDef lidar_tryParseMeasRes(lidar_t* dev, uint32_t* res);
+HAL_StatusTypeDef lidar_dropMeas(lidar_t* dev);
 
 HAL_StatusTypeDef lidar_start(lidar_t*);
 HAL_StatusTypeDef lidar_stop(lidar_t*);

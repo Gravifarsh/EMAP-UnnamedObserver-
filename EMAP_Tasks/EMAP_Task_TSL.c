@@ -5,17 +5,7 @@
  *      Author: developer
  */
 
-#include <stm32f4xx_hal.h>
-#include "diag/Trace.h"
-
-#include "FreeRTOS.h"
-#include "task.h"
-
-#include "EMAPConfig.h"
-
 #include "EMAP_Task_TSL.h"
-
-#include "../drivers/TSL2581/TSL2581.h"
 
 void TSL_Init()
 {
@@ -42,7 +32,6 @@ void TSL_Init()
 	(HAL_I2C_Init(tsl2581.hi2c));
 
 	tsl2581_start(&tsl2581);
-	HAL_Delay(500);
 
 	trace_printf("LS: %d\n", error);
 }

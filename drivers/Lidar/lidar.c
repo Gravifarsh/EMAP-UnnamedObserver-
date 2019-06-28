@@ -7,6 +7,7 @@
 #include "lidar.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 #define COM_TDCINIT ("_tdcinit;")
 #define COM_MEAS ("_meas;")
@@ -16,8 +17,10 @@
 #define COM_REPINTFREQ ("_repint=%d;")
 
 #define RES_ACK ("ACK")
+#define RES_METERS ("m")
+#define RES_DISTANCE ("Distance:")
 
-#define RX_TIMEOUT (5)
+#define RX_TIMEOUT (15)
 #define TX_TIMEOUT (100)
 
 inline HAL_StatusTypeDef checkAck(lidar_t* dev) {
@@ -138,7 +141,7 @@ HAL_StatusTypeDef lidar_tdcInit(lidar_t* dev) {
 
 	HAL_UART_Transmit(dev->huart, COM_TDCINIT, strlen(COM_TDCINIT), TX_TIMEOUT);
 
-	Custom_HAL_UART_Receive(dev->huart, (uint8_t*)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1, 10 * RX_TIMEOUT);
+	HAL_UART_Receive(dev->huart, (uint8_t*)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1, 10 * RX_TIMEOUT);
 
 	return checkAck(dev);
 }
@@ -150,7 +153,7 @@ HAL_StatusTypeDef lidar_setMeasFreq(lidar_t* dev, uint32_t freq) {
 
 	HAL_UART_Transmit(dev->huart, (uint8_t*)dev->txbuffer, strlen(dev->txbuffer), TX_TIMEOUT);
 
-	Custom_HAL_UART_Receive(dev->huart, (uint8_t*)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1, RX_TIMEOUT);
+	HAL_UART_Receive(dev->huart, (uint8_t*)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1, RX_TIMEOUT);
 
 	return checkAck(dev);
 }
@@ -162,7 +165,7 @@ HAL_StatusTypeDef lidar_setRepIntFreq(lidar_t* dev, uint32_t freq) {
 
 	HAL_UART_Transmit(dev->huart, (uint8_t*)dev->txbuffer, strlen(dev->txbuffer), TX_TIMEOUT);
 
-	Custom_HAL_UART_Receive(dev->huart, (uint8_t*)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1, RX_TIMEOUT);
+	HAL_UART_Receive(dev->huart, (uint8_t*)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1, RX_TIMEOUT);
 
 	if(checkAck(dev) == HAL_OK) {
 		dev->repint_freq = freq;
@@ -171,14 +174,34 @@ HAL_StatusTypeDef lidar_setRepIntFreq(lidar_t* dev, uint32_t freq) {
 	else return HAL_ERROR;
 }
 
-HAL_StatusTypeDef lidar_meas(lidar_t* dev, uint32_t* res) {
+HAL_StatusTypeDef lidar_meas(lidar_t* dev) {
 	memset(dev->rxbuffer, 0x00, LIDAR_RXBUF_SIZE);
 
 	HAL_UART_Transmit(dev->huart, COM_MEAS, strlen(COM_MEAS), TX_TIMEOUT);
 
-	Custom_HAL_UART_Receive(dev->huart, (uint8_t*)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1, RX_TIMEOUT);
+	HAL_DMA_Start(dev->huart->hdmarx, (uint32_t)&dev->huart->Instance->DR,
+			(uint32_t)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1);
 
 	return HAL_OK;
+}
+
+HAL_StatusTypeDef lidar_tryParseMeasRes(lidar_t* dev, uint32_t* res) {
+	if(!strstr(dev->rxbuffer, RES_METERS)) return HAL_BUSY;
+
+	char* dis = strstr(dev->rxbuffer, RES_DISTANCE);
+
+	if(!dis) return HAL_ERROR;
+
+	dis = dis + strlen(RES_DISTANCE);
+
+	double tmp = atof(dis);
+	*res = (uint32_t)(tmp * 1000);
+
+	return HAL_OK;
+}
+
+HAL_StatusTypeDef lidar_dropMeas(lidar_t* dev) {
+	return HAL_DMA_Abort(dev->huart->hdmarx);
 }
 
 HAL_StatusTypeDef lidar_start(lidar_t* dev) {
@@ -186,7 +209,7 @@ HAL_StatusTypeDef lidar_start(lidar_t* dev) {
 
 	HAL_UART_Transmit(dev->huart, COM_START, strlen(COM_START), TX_TIMEOUT);
 
-	Custom_HAL_UART_Receive(dev->huart, (uint8_t*)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1, RX_TIMEOUT);
+	HAL_UART_Receive(dev->huart, (uint8_t*)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1, RX_TIMEOUT);
 
 	return checkAck(dev);
 }
@@ -196,7 +219,7 @@ HAL_StatusTypeDef lidar_stop(lidar_t* dev) {
 
 	HAL_UART_Transmit(dev->huart, COM_STOP, strlen(COM_STOP), TX_TIMEOUT);
 
-	Custom_HAL_UART_Receive(dev->huart, (uint8_t*)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1, RX_TIMEOUT);
+	HAL_UART_Receive(dev->huart, (uint8_t*)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1, RX_TIMEOUT);
 
 	return checkAck(dev);
 }
@@ -204,7 +227,7 @@ HAL_StatusTypeDef lidar_stop(lidar_t* dev) {
 HAL_StatusTypeDef lidar_getRes(lidar_t* dev, uint32_t* min, uint32_t* mid, uint32_t* max) {
 	memset(dev->rxbuffer, 0x00, LIDAR_RXBUF_SIZE);
 
-	Custom_HAL_UART_Receive(dev->huart, (uint8_t*)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1, dev->repint_freq);
+	HAL_UART_Receive(dev->huart, (uint8_t*)dev->rxbuffer, LIDAR_RXBUF_SIZE - 1, dev->repint_freq);
 
 	return HAL_OK;
 }
