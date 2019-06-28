@@ -9,8 +9,8 @@
 #include "stm32f4xx_hal_i2c.h"
 #include "stm32f4xx_hal_spi.h"
 
-#include "task.h"
 #include "FreeRTOS.h"
+#include "task.h"
 
 #include "diag/Trace.h"
 
