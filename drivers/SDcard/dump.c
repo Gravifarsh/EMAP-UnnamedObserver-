@@ -172,12 +172,12 @@ bool dump_init(dump_channel_state_t* state)
 			state->file_prefix = "U";
 			state->sync_counter = 0;
 			// отлично - такого файла нет!
-			trace_printf("dump file name '%s' ok\n", fname);
+			//trace_printf("dump file name '%s' ok\n", fname);
 		}
 		else if (res == FR_OK)
 		{
 			state->file_opened = false;
-			trace_printf("dump file name '%s' already exists\n", fname);
+			//trace_printf("dump file name '%s' already exists\n", fname);
 			//f_close(&fp); пока попробуем без этого
 			goto again;
 		}

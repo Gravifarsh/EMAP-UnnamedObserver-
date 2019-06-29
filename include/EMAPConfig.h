@@ -45,13 +45,11 @@ typedef enum
 
 typedef enum
 {
-	EMAP_State_Calibration =	0,
-	EMAP_State_Ready_To_Load =	1,
-	EMAP_State_Loaded = 		2,
-	EMAP_State_Rising =			3,
-	EMAP_State_Falling =		4,
-	EMAP_State_Landed =			5
-}EMAP_States_t;
+	EMAP_STATE_START,
+	EMAP_STATE_READY,
+	EMAP_STATE_PAYLOAD,
+	EMAP_STATE_FALLING
+}EMAP_state_t;
 
 typedef struct
 {
@@ -82,7 +80,7 @@ typedef struct
 typedef struct
 {
 	float time;
-	uint8_t	GlobalState;
+	EMAP_state_t GlobalState;
 	uint8_t MPU9255_1;
 	uint8_t BMP280_1;
 	uint8_t MPU9255_2;

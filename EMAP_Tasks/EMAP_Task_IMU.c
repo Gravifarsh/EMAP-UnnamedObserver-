@@ -139,12 +139,10 @@ taskENTER_CRITICAL();
 		system_state_zero.gyro_staticShift1[i] = gyroStaticShifts[i];
 		system_state_zero.accel_staticShift1[i] = accelStaticShifts[i];
 	}
-taskEXIT_CRITICAL();
 
 	PROCESS_ERROR( getGyroStaticShifts(&i2c_IMU_2,gyroStaticShifts) );
 	PROCESS_ERROR( getAccelStaticShift(&i2c_IMU_2,gyroStaticShifts, accelStaticShifts) );
 
-taskENTER_CRITICAL();
 	for (int i = 0; i < 3; i++)
 	{
 		system_state_zero.gyro_staticShift2[i] = gyroStaticShifts[i];
@@ -322,12 +320,8 @@ taskEXIT_CRITICAL();
 void IMU_Task()
 {
 	if( setSysStateZero() == EMAP_ERROR_NONE )
-		system_state.GlobalState = EMAP_State_Ready_To_Load;
-/*	trace_printf("Zero State:\nPressure: %d.%d\nQuaternion: %d.%d, %d.%d, %d.%d, %d.%d\n===============\n", INTIFY(system_state_zero.pressure), INTIFY(system_state_zero.quaternion[0]),
-			INTIFY(system_state_zero.quaternion[1]),
-			INTIFY(system_state_zero.quaternion[2]),
-			INTIFY(system_state_zero.quaternion[3]));
-*/
+		system_state.GlobalState = EMAP_STATE_READY;
+
 	for(;;)
 	{
 taskENTER_CRITICAL();

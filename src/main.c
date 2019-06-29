@@ -43,6 +43,7 @@
 #include "EMAP_Task_GPS.h"
 #include "EMAP_Task_TSL.h"
 #include "EMAP_Task_LIDAR.h"
+#include "EMAP_Task_Burner.h"
 
 
 //	параметры GPS_task
@@ -64,6 +65,10 @@ static StaticTask_t	_TSLTaskObj;
 #define LIDAR_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
 static StackType_t	_LIDARTaskStack[LIDAR_TASK_STACK_SIZE];
 static StaticTask_t	_LIDARTaskObj;
+
+#define BURNER_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
+static StackType_t	_BURNERTaskStack[BURNER_TASK_STACK_SIZE];
+static StaticTask_t	_BURNERTaskObj;
 
 
 I2C_HandleTypeDef 	i2c_IMU_1;
@@ -154,32 +159,27 @@ main(int argc, char* argv[])
 
 	FILL_STRUCT_WITH_ZERO(lidar)
 
-	/* FIRERISER */
-	GPIO_InitTypeDef gpio;
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	gpio.Mode = GPIO_MODE_OUTPUT_PP;
-	gpio.Pull = GPIO_PULLDOWN;
-	gpio.Speed = GPIO_SPEED_FREQ_HIGH;
-	gpio.Pin = GPIO_PIN_0;
-	HAL_GPIO_Init(GPIOA, &gpio);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
-
 	/* CREATING TASKS */
-	xTaskCreateStatic(IMU_Task, 	"IMU",		IMU_TASK_STACK_SIZE, 		NULL, 4, _IMUTaskStack,		&_IMUTaskObj);
+	//xTaskCreateStatic(IMU_Task, 	"IMU",		IMU_TASK_STACK_SIZE, 		NULL, 4, _IMUTaskStack,		&_IMUTaskObj);
 	xTaskCreateStatic(GPS_Task, 	"GPS",		GPS_TASK_STACK_SIZE, 		NULL, 1, _GPSTaskStack,		&_GPSTaskObj);
-	xTaskCreateStatic(TSL_Task, 	"TSL", 		TSL_TASK_STACK_SIZE, 		NULL, 2, _TSLTaskStack,		&_TSLTaskObj);
-	xTaskCreateStatic(LIDAR_Task,	"LIDAR",	LIDAR_TASK_STACK_SIZE,		NULL, 3, _LIDARTaskStack, 	&_LIDARTaskObj);
+	//xTaskCreateStatic(TSL_Task, 	"TSL", 		TSL_TASK_STACK_SIZE, 		NULL, 2, _TSLTaskStack,		&_TSLTaskObj);
+	//xTaskCreateStatic(LIDAR_Task,	"LIDAR",	LIDAR_TASK_STACK_SIZE,		NULL, 3, _LIDARTaskStack, 	&_LIDARTaskObj);
+	//xTaskCreateStatic(BURNER_Task,	"BURNER",	BURNER_TASK_STACK_SIZE,		NULL, 5, _BURNERTaskStack, 	&_BURNERTaskObj);
 
 	/* CALLING INITS */
-	DATA_Init();
+	//DATA_Init();
 
-	IMU_Init();
+	//IMU_Init();
 
 	GPS_Init();
 
-	TSL_Init();
+	//TSL_Init();
 
-	LIDAR_Init();
+	//LIDAR_Init();
+
+	//BURNER_Init();
+
+	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
 
 	/* STARTING */
 	vTaskStartScheduler();
