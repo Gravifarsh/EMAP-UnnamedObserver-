@@ -174,6 +174,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
 void HAL_UART_MspInit(UART_HandleTypeDef* huart) {
 
 		//	uart_GPS
+	/*
 	if(huart->Instance == USART1) {
 		__USART1_CLK_ENABLE();
 		__GPIOA_CLK_ENABLE();
@@ -193,7 +194,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart) {
 		gpioa.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
 		HAL_GPIO_Init(GPIOA, &gpioa);
 	}
-	else if(huart->Instance == UART4)
+	else */ if(huart->Instance == UART4)
 	{
 		__HAL_RCC_UART4_CLK_ENABLE();
 		__GPIOA_CLK_ENABLE();

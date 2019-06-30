@@ -31,20 +31,22 @@ void BURNER_Task()
 
 	for(;;)
 	{
+		taskENTER_CRITICAL();
+		uint16_t brightness = data_TSL.ch0;
+		tick = HAL_GetTick();
+		taskEXIT_CRITICAL();
 		switch (system_state.GlobalState)
 			{
 			case EMAP_STATE_READY:
-				if (data_TSL.ch0 < TSL_DARK)
+				if (brightness < TSL_DARK)
 				{
-				taskENTER_CRITICAL();
 					if (!start)
 					{
-						startTick = HAL_GetTick();
+						startTick = tick;
 						start = !start;
 					}
 					else
 					{
-						tick = HAL_GetTick();
 						if (tick - startTick > PAYLOAD_TIME)
 						{
 							system_state.GlobalState = EMAP_STATE_PAYLOAD;
@@ -54,36 +56,32 @@ void BURNER_Task()
 							start = !start;
 						}
 					}
-				taskEXIT_CRITICAL();
 				}
 				break;
 
 			case EMAP_STATE_PAYLOAD:
-				if (data_TSL.ch0 > TSL_BRIGHT)
+				if (brightness > TSL_BRIGHT)
 				{
-				taskENTER_CRITICAL();
 					if (!start)
 					{
-						startTick = HAL_GetTick();
+						startTick = tick;
 						start = !start;
 					}
 					else
 					{
-						tick = HAL_GetTick();
 						if (tick - startTick > FALLING_TIME)
 						{
 							system_state.GlobalState = EMAP_STATE_FALLING;
 							trace_printf("State: %d\n", system_state.GlobalState);
 							HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-							HAL_Delay(1500);
-							//vTaskDelay(2000);
+							//HAL_Delay(1500);
+							vTaskDelay(2000);
 							HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
 							startTick = 0;
 							tick = 0;
 							start = !start;
 						}
 					}
-				taskEXIT_CRITICAL();
 				}
 				break;
 			}

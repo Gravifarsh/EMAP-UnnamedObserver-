@@ -55,7 +55,7 @@ void GPS_Init() {
 	_msg_carret = 0;
 
 	//	Инициализация USART1 для работы с GPS
-	uart_GPS.Instance = USART1;
+	uart_GPS.Instance = UART5;
 	uart_GPS.Init.BaudRate = 9600;
 	uart_GPS.Init.WordLength = UART_WORDLENGTH_8B;
 	uart_GPS.Init.StopBits = UART_STOPBITS_1;
@@ -66,9 +66,9 @@ void GPS_Init() {
 
 	PROCESS_ERROR(HAL_UART_Init(&uart_GPS));
 
-	__HAL_RCC_DMA2_CLK_ENABLE();
+	__HAL_RCC_DMA1_CLK_ENABLE();
 	//	Инициализация DMA2_Stream5 для работы c GPS через USART
-	dma_GPS.Instance = DMA2_Stream5;
+	dma_GPS.Instance = DMA1_Stream0;
 	dma_GPS.Init.Channel = DMA_CHANNEL_4;						// 4 канал - на USART1_RX
 	dma_GPS.Init.Direction = DMA_PERIPH_TO_MEMORY;				// направление - из периферии в память
 	dma_GPS.Init.PeriphInc = DMA_PINC_DISABLE;					// инкрементация периферии выключена
@@ -96,7 +96,7 @@ void GPS_Init() {
     in the UART CR3 register */
     SET_BIT(uart_GPS.Instance->CR3, USART_CR3_DMAR);
 
-    // поидее теперь все - дма крутится само по себе
+    // по идее теперь все - дма крутится само по себе
 
 end:
 	system_state.GPS = error;
@@ -106,6 +106,10 @@ end:
 void GPS_Task()	{
 
 	trace_printf("GPS: %d\n", system_state.GPS);
+
+	//char msg[500] = {0};
+	//HAL_UART_Receive(&uart_GPS, (uint8_t*)msg, sizeof(msg), 5000);
+	//trace_printf("MSG: %s \n", msg);
 
 	for ( ; ; )
 	{
