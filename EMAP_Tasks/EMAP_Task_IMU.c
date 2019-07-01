@@ -308,7 +308,18 @@ static uint8_t setSysStateZero()
 
 taskENTER_CRITICAL();
 	PROCESS_ERROR( getStaticShifts() );
-	//PROCESS_ERROR( updateAll() ); TODO
+
+	for(int i = 0; i < 10 && system_state.MPU9255_1; i++)
+		system_state.MPU9255_1 = mpu9255_init(&i2c_IMU_1, I2C1);
+	if (!system_state.MPU9255_1)
+		system_state.MPU9255_1 = updateIMU(&i2c_IMU_1);
+
+
+	for(int i = 0; i < 10 && system_state.BMP280_1; i++)
+		system_state.BMP280_1 = bmp280_init(&i2c_IMU_1, &IMU_bmp280_1);
+	if(!system_state.BMP280_1)
+		system_state.BMP280_1 = updateBMP280(&i2c_IMU_1, &IMU_bmp280_1);
+
 	system_state_zero.pressure = data_BMP280_1.pressure;
 	for(int i = 0; i < 4; i++)
 		system_state_zero.quaternion[i] = data_MPU9255_isc.quaternion[i];
@@ -319,46 +330,52 @@ taskEXIT_CRITICAL();
 
 void IMU_Task()
 {
-	if( setSysStateZero() == EMAP_ERROR_NONE )
-		system_state.GlobalState = EMAP_STATE_READY;
+	setSysStateZero();
+	system_state.GlobalState = EMAP_STATE_READY;
 
 	for(;;)
 	{
 taskENTER_CRITICAL();
 		if(!system_state.MPU9255_1)
+		{
 			system_state.MPU9255_1 = updateIMU(&i2c_IMU_1);
+			writeDataMPU(&i2c_IMU_1);
+		}
 		else
 			system_state.MPU9255_1 = mpu9255_init(&i2c_IMU_1, I2C1);
 taskEXIT_CRITICAL();
 
-		writeDataMPU(&i2c_IMU_1);
-
 taskENTER_CRITICAL();
 		if(!system_state.MPU9255_2)
+		{
 			system_state.MPU9255_2 = updateIMU(&i2c_IMU_2);
+			writeDataMPU(&i2c_IMU_2);
+		}
 		else
 			system_state.MPU9255_2 = mpu9255_init(&i2c_IMU_2, I2C2);
 taskEXIT_CRITICAL();
 
-		writeDataMPU(&i2c_IMU_2);
-
 taskENTER_CRITICAL();
 		if(!system_state.BMP280_1)
+		{
 			system_state.BMP280_1 = updateBMP280(&i2c_IMU_1, &IMU_bmp280_1);
+			writeDataBMP(&i2c_IMU_1);
+		}
 		else
 			system_state.BMP280_1 = bmp280_init(&i2c_IMU_1, &IMU_bmp280_1);
 taskEXIT_CRITICAL();
 
-		writeDataBMP(&i2c_IMU_1);
+
 
 taskENTER_CRITICAL();
 		if(!system_state.BMP280_2)
+		{
 			system_state.BMP280_2 = updateBMP280(&i2c_IMU_2, &IMU_bmp280_2);
+			writeDataBMP(&i2c_IMU_2);
+		}
 		else
 			system_state.BMP280_2 = bmp280_init(&i2c_IMU_2, &IMU_bmp280_2);
 taskEXIT_CRITICAL();
-
-		writeDataBMP(&i2c_IMU_2);
 
 		vTaskDelay(10 / portTICK_RATE_MS);
 

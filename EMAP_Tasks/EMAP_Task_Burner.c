@@ -73,15 +73,22 @@ void BURNER_Task()
 						{
 							system_state.GlobalState = EMAP_STATE_FALLING;
 							trace_printf("State: %d\n", system_state.GlobalState);
-							HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-							//HAL_Delay(1500);
-							vTaskDelay(2000);
-							HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
 							startTick = 0;
 							tick = 0;
 							start = !start;
 						}
 					}
+				}
+				break;
+
+			case EMAP_STATE_FALLING:
+				trace_printf("height1: %d\nheight2: %d\n", data_BMP280_1.height, data_BMP280_2.height);
+				if((data_BMP280_1.height + data_BMP280_2.height) / 2 < 300)
+				{
+					HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+					vTaskDelay(3000);
+					HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+					vTaskDelete(NULL);
 				}
 				break;
 			}

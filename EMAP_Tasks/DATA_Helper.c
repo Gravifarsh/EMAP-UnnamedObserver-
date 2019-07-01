@@ -19,8 +19,8 @@ bool isZeroWrote = false;
 
 /* FOR NRF */
 
-const uint8_t RXAddr[5] = {0xE7, 0xE7, 0xE7, 0xE7, 0xE7};
-const uint8_t TXAddr[5] = {0xE7, 0xE7, 0xE7, 0xE7, 0xE7};
+const uint8_t RXAddr[5] = {0x14, 0x14, 0x14, 0x14, 0x14};
+const uint8_t TXAddr[5] = {0x14, 0x14, 0x14, 0x14, 0x14};
 
 uint8_t RXBuffer[32];
 
@@ -77,7 +77,7 @@ void nRF_Init(){
 	nRF24.TX_Power = nRF_TX_PWR_0dBm;
 	nRF24.State = nRF_STATE_TX;
 
-	nRF24.RF_Channel = 73;
+	nRF24.RF_Channel = 0;
 	nRF24.PayloadWidth = nRF_RXPW_32BYTES;
 	nRF24.RetransmitCount = nRF_RETX_COUNT_15;
 
@@ -107,7 +107,7 @@ void SD_Init()
 void DATA_Init() {
 	SPI_Init();
 	nRF_Init();
-	SD_Init();
+	//SD_Init();
 }
 
 void writeSysStateZero()

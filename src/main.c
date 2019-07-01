@@ -160,18 +160,18 @@ main(int argc, char* argv[])
 	FILL_STRUCT_WITH_ZERO(lidar)
 
 	/* CREATING TASKS */
-	//xTaskCreateStatic(IMU_Task, 	"IMU",		IMU_TASK_STACK_SIZE, 		NULL, 4, _IMUTaskStack,		&_IMUTaskObj);
-	xTaskCreateStatic(GPS_Task, 	"GPS",		GPS_TASK_STACK_SIZE, 		NULL, 1, _GPSTaskStack,		&_GPSTaskObj);
+	xTaskCreateStatic(IMU_Task, 	"IMU",		IMU_TASK_STACK_SIZE, 		NULL, 4, _IMUTaskStack,		&_IMUTaskObj);
+	//xTaskCreateStatic(GPS_Task, 	"GPS",		GPS_TASK_STACK_SIZE, 		NULL, 1, _GPSTaskStack,		&_GPSTaskObj);
 	//xTaskCreateStatic(TSL_Task, 	"TSL", 		TSL_TASK_STACK_SIZE, 		NULL, 2, _TSLTaskStack,		&_TSLTaskObj);
 	//xTaskCreateStatic(LIDAR_Task,	"LIDAR",	LIDAR_TASK_STACK_SIZE,		NULL, 3, _LIDARTaskStack, 	&_LIDARTaskObj);
 	//xTaskCreateStatic(BURNER_Task,	"BURNER",	BURNER_TASK_STACK_SIZE,		NULL, 5, _BURNERTaskStack, 	&_BURNERTaskObj);
 
 	/* CALLING INITS */
-	//DATA_Init();
+	DATA_Init();
 
-	//IMU_Init();
+	IMU_Init();
 
-	GPS_Init();
+	//GPS_Init();
 
 	//TSL_Init();
 

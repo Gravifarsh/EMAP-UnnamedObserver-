@@ -114,7 +114,7 @@ void GPS_Task()	{
 	for ( ; ; )
 	{
 		vTaskDelay(500 / portTICK_RATE_MS);
-		trace_printf(" %d.%d ; %d.%d ; %d.%d\n", INTIFY(data_GPS.coords[0]), INTIFY(data_GPS.coords[1]), INTIFY(data_GPS.coords[2]));
+		//trace_printf(" %d.%d ; %d.%d ; %d.%d\n", INTIFY(data_GPS.coords[0]), INTIFY(data_GPS.coords[1]), INTIFY(data_GPS.coords[2]));
 
 		// ждем доллара
 		do {
