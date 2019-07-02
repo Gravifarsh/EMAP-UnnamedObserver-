@@ -107,10 +107,6 @@ void GPS_Task()	{
 
 	trace_printf("GPS: %d\n", system_state.GPS);
 
-	//char msg[500] = {0};
-	//HAL_UART_Receive(&uart_GPS, (uint8_t*)msg, sizeof(msg), 5000);
-	//trace_printf("MSG: %s \n", msg);
-
 	for ( ; ; )
 	{
 		vTaskDelay(500 / portTICK_RATE_MS);
@@ -150,7 +146,7 @@ void GPS_Task()	{
 
 		if (frame.fix_quality == 0)
 		{
-			trace_printf("gps no fix\n");
+			//trace_printf("gps no fix\n");
 			continue;
 		}
 
@@ -158,11 +154,14 @@ void GPS_Task()	{
 		float _lat = minmea_tocoord(&frame.latitude);
 		float _height = minmea_tofloat(&frame.altitude);
 
-		taskENTER_CRITICAL();
+	//taskENTER_CRITICAL();
+		data_GPS.time = HAL_GetTick();
 		data_GPS.coords[0] = _lon;
 		data_GPS.coords[1] = _lat;
 		data_GPS.coords[2] = _height;
-		taskEXIT_CRITICAL();
+	//taskEXIT_CRITICAL();
+
+		writeDataGPS();
 
 	end:
 		_msg_carret = 0;

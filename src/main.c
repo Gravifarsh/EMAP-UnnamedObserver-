@@ -44,32 +44,35 @@
 #include "EMAP_Task_TSL.h"
 #include "EMAP_Task_LIDAR.h"
 #include "EMAP_Task_Burner.h"
-
+#include "EMAP_Task_State.h"
 
 //	параметры GPS_task
 #define GPS_TASK_STACK_SIZE	(20*configMINIMAL_STACK_SIZE)
-static StackType_t	_GPSTaskStack[GPS_TASK_STACK_SIZE];
-static StaticTask_t	_GPSTaskObj;
+//static StackType_t	_GPSTaskStack[GPS_TASK_STACK_SIZE];
+//static StaticTask_t	_GPSTaskObj;
 
 //	параметры IMU_task
 #define IMU_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
-static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
-static StaticTask_t	_IMUTaskObj;
+//static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
+//static StaticTask_t	_IMUTaskObj;
 
 //	параметры TSL_task
 #define TSL_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
-static StackType_t	_TSLTaskStack[TSL_TASK_STACK_SIZE];
-static StaticTask_t	_TSLTaskObj;
+//static StackType_t	_TSLTaskStack[TSL_TASK_STACK_SIZE];
+//static StaticTask_t	_TSLTaskObj;
 
 //	параметры LIDAR_task
 #define LIDAR_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
-static StackType_t	_LIDARTaskStack[LIDAR_TASK_STACK_SIZE];
-static StaticTask_t	_LIDARTaskObj;
+//static StackType_t	_LIDARTaskStack[LIDAR_TASK_STACK_SIZE];
+//static StaticTask_t	_LIDARTaskObj;
 
 #define BURNER_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
-static StackType_t	_BURNERTaskStack[BURNER_TASK_STACK_SIZE];
-static StaticTask_t	_BURNERTaskObj;
+//static StackType_t	_BURNERTaskStack[BURNER_TASK_STACK_SIZE];
+//static StaticTask_t	_BURNERTaskObj;
 
+#define STATE_TASK_STACK_SIZE (configMINIMAL_STACK_SIZE)
+//static StackType_t	_STATETaskStack[BURNER_TASK_STACK_SIZE];
+//static StaticTask_t	_STATERTaskObj;
 
 I2C_HandleTypeDef 	i2c_IMU_1;
 I2C_HandleTypeDef 	i2c_IMU_2;
@@ -160,22 +163,23 @@ main(int argc, char* argv[])
 	FILL_STRUCT_WITH_ZERO(lidar)
 
 	/* CREATING TASKS */
-	xTaskCreateStatic(IMU_Task, 	"IMU",		IMU_TASK_STACK_SIZE, 		NULL, 4, _IMUTaskStack,		&_IMUTaskObj);
-	//xTaskCreateStatic(GPS_Task, 	"GPS",		GPS_TASK_STACK_SIZE, 		NULL, 1, _GPSTaskStack,		&_GPSTaskObj);
-	//xTaskCreateStatic(TSL_Task, 	"TSL", 		TSL_TASK_STACK_SIZE, 		NULL, 2, _TSLTaskStack,		&_TSLTaskObj);
-	//xTaskCreateStatic(LIDAR_Task,	"LIDAR",	LIDAR_TASK_STACK_SIZE,		NULL, 3, _LIDARTaskStack, 	&_LIDARTaskObj);
-	//xTaskCreateStatic(BURNER_Task,	"BURNER",	BURNER_TASK_STACK_SIZE,		NULL, 5, _BURNERTaskStack, 	&_BURNERTaskObj);
+	xTaskCreate(IMU_Task, 	"IMU",		IMU_TASK_STACK_SIZE, 	NULL, 6,	NULL);
+	xTaskCreate(GPS_Task, 	"GPS",		GPS_TASK_STACK_SIZE, 	NULL, 2, NULL);
+	xTaskCreate(TSL_Task, 	"TSL", 		TSL_TASK_STACK_SIZE, 	NULL, 3, NULL);
+	xTaskCreate(LIDAR_Task,	"LIDAR",	LIDAR_TASK_STACK_SIZE,	NULL, 5, NULL);
+	xTaskCreate(BURNER_Task,	"BURNER",	BURNER_TASK_STACK_SIZE,		NULL, 5, NULL);
+	xTaskCreate(STATE_Task,	"STATE",	STATE_TASK_STACK_SIZE,	NULL, 4, NULL);
 
 	/* CALLING INITS */
 	DATA_Init();
 
 	IMU_Init();
 
-	//GPS_Init();
+	GPS_Init();
 
-	//TSL_Init();
+	TSL_Init();
 
-	//LIDAR_Init();
+	LIDAR_Init();
 
 	BURNER_Init();
 

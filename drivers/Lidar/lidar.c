@@ -19,6 +19,7 @@
 #define RES_ACK ("ACK")
 #define RES_METERS ("m")
 #define RES_DISTANCE ("Distance:")
+#define RES_NO_RETURN ("No return")
 
 #define RX_TIMEOUT (15)
 #define TX_TIMEOUT (100)
@@ -186,6 +187,11 @@ HAL_StatusTypeDef lidar_meas(lidar_t* dev) {
 }
 
 HAL_StatusTypeDef lidar_tryParseMeasRes(lidar_t* dev, uint32_t* res) {
+	if(strstr(dev->rxbuffer, RES_NO_RETURN) != 0) {
+		*res = 0;
+		return HAL_OK;
+	}
+
 	if(!strstr(dev->rxbuffer, RES_METERS)) return HAL_BUSY;
 
 	char* dis = strstr(dev->rxbuffer, RES_DISTANCE);

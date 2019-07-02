@@ -226,7 +226,7 @@ HAL_StatusTypeDef HAL_nRF24L01P_ACKPayload(nRF24L01P *nRF, nRF_STATE ACK_State);
 HAL_StatusTypeDef HAL_nRF24L01P_DynPayload(nRF24L01P *nRF, nRF_STATE DPL_State);
 HAL_StatusTypeDef HAL_nRF24L01P_DPLPipe(nRF24L01P *nRF, nRF_DATA_PIPE Pipe, nRF_STATE DPL_State);
 
-HAL_StatusTypeDef HAL_nRF24L01P_TransmitPacketNonExt(nRF24L01P *nRF, uint8_t *Data);
+HAL_StatusTypeDef HAL_nRF24L01P_TransmitPacketNonExt(nRF24L01P *nRF, uint8_t *Data, uint32_t timeout);
 HAL_StatusTypeDef HAL_nRF24L01P_ReceivePacketNonExt(nRF24L01P *nRF, uint8_t *Data);
 
 HAL_StatusTypeDef HAL_nRF24L01P_TransmitPacket(nRF24L01P *nRF, uint8_t *Data);

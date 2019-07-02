@@ -17,35 +17,34 @@ data_LIDAR_t data_LIDAR;
 void LIDAR_Task() {
 	uint32_t res, tickstart, tick;
 	for(;;) {
-taskENTER_CRITICAL();
 		lidar_meas(&lidar); // Запрашиваем измерение
+taskENTER_CRITICAL();
 		tickstart = HAL_GetTick(); // Запоминаем, когда это сделали
 taskEXIT_CRITICAL();
 
+		data_LIDAR.time = tickstart;
 		for(;;) {
-			vTaskDelay(20 / portTICK_RATE_MS); // Спим - нет смысла пытаться получить ответ постоянно, дадим другим поработать
+			vTaskDelay(50 / portTICK_RATE_MS); // Спим - нет смысла пытаться получить ответ постоянно, дадим другим поработать
 taskENTER_CRITICAL();
 			tick = HAL_GetTick(); // Узнаём нынешнее время
 taskEXIT_CRITICAL();
 			HAL_StatusTypeDef error = lidar_tryParseMeasRes(&lidar, &res); // Пытаемся обработать ответ
 			if(error == HAL_OK) { // Валидный ответ
-taskENTER_CRITICAL();
-				data_LIDAR.time = HAL_GetTick();
 				data_LIDAR.dist = res;
-taskEXIT_CRITICAL();
 				//trace_printf("Distance: %d; Time: %d\n", res, tick - tickstart);
 				writeDataLidar(); // Сгружаем данные
 				break;
 			}
-			else if(error == HAL_ERROR || (tick - tickstart) > LIDAR_RES_TIMEOUT) // Ошибка или таймаут - тикаем
+			else if(error == HAL_ERROR || (tick - tickstart) > LIDAR_RES_TIMEOUT) { // Ошибка или таймаут - тикаем
+				data_LIDAR.dist = 0;
+				writeDataLidar();
 				break;
+			}
 
 			//trace_printf("%s\n\n\n", lidar.rxbuffer);
 		}
 
-taskENTER_CRITICAL();
 		lidar_dropMeas(&lidar); // Бросаем транзакцию
-taskEXIT_CRITICAL();
 	}
 }
 

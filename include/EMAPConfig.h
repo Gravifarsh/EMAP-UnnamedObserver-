@@ -11,6 +11,7 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "semphr.h"
 
 #include "diag/Trace.h"
 
@@ -59,7 +60,7 @@ typedef struct
 
 typedef struct
 {
-	float time;
+	uint32_t time;
 	float temperature;
 	float pressure;
 	float height;
@@ -67,7 +68,7 @@ typedef struct
 
 typedef struct
 {
-	float time;
+	uint32_t time;
 	float accel[3];
 	float compass[3];
 	union
@@ -79,8 +80,8 @@ typedef struct
 
 typedef struct
 {
-	float time;
-	EMAP_state_t GlobalState;
+	uint32_t time;
+	uint8_t GlobalState;
 	uint8_t MPU9255_1;
 	uint8_t BMP280_1;
 	uint8_t MPU9255_2;
@@ -92,8 +93,9 @@ typedef struct
 
 typedef struct
 {
-	float time;
-	float pressure;
+	uint32_t time;
+	float pressure1;
+	float pressure2;
 	float gyro_staticShift1[3];
 	float accel_staticShift1[3];
 	float quaternion[4];
@@ -103,21 +105,21 @@ typedef struct
 
 typedef struct
 {
-	float time; // TODO: uint32_t in ms
+	uint32_t time;
 	float coords[3];
-}data_GPS_t;
+} data_GPS_t;
 
 typedef struct
 {
-	float time;
+	uint32_t time;
 	uint16_t ch0;		//Visible + Infrared
 	uint16_t ch1;		//Infrared only
-	unsigned int lux;
+	uint16_t lux;
 } data_TSL_t;
 
 typedef struct
 {
-	float time;
+	uint32_t time;
 	uint32_t dist;
 } data_LIDAR_t;
 
@@ -154,5 +156,7 @@ extern data_MPU9255_t 	data_prev_MPU9255_1;
 extern data_MPU9255_t 	data_prev_MPU9255_2;
 extern data_MPU9255_t 	data_prev_MPU9255_isc;
 extern system_state_t 	system_prev_state;
+
+extern SemaphoreHandle_t spi_semphr;
 
 #endif

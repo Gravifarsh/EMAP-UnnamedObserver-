@@ -9,7 +9,6 @@
 
 #include "dump.h"
 
-
 /* FOR SD */
 
 static dump_channel_state_t stream_file;
@@ -26,6 +25,8 @@ uint8_t RXBuffer[32];
 
 SPI_HandleTypeDef	spi_nRF24L01;
 nRF24L01P 			nRF24;
+
+SemaphoreHandle_t spi_semphr;
 
 void drop(const void * data, size_t datasize)
 {
@@ -46,9 +47,16 @@ void send(uint8_t* data, size_t size) {
 
 	while(pos < size) {
 		nRF24.PayloadWidth = (size - pos) > 32 ? 32 : size - pos;
-		HAL_nRF24L01P_TransmitPacketNonExt(&nRF24, data + pos);
+		HAL_nRF24L01P_TransmitPacketNonExt(&nRF24, data + pos, NRF_TIMEOUT);
 		pos += 32;
 	}
+}
+
+uint8_t hash(uint8_t* data, size_t size) {
+	uint8_t retval = 0;
+	for(int i = 0; i < size; i++)
+		retval = retval ^ data[i];
+	return retval;
 }
 
 void SPI_Init(void)
@@ -107,125 +115,170 @@ void SD_Init()
 void DATA_Init() {
 	SPI_Init();
 	nRF_Init();
-	//SD_Init();
+	SD_Init();
+
+	spi_semphr = xSemaphoreCreateMutex();
 }
 
 void writeSysStateZero()
 {
-	uint8_t buffer[sizeof(system_state_zero_t) + 2];
-taskENTER_CRITICAL();
+	uint8_t buffer[sizeof(system_state_zero_t) + 3];
+//taskENTER_CRITICAL();
 
 	buffer[0] = 0xF9;
-	memcpy(&buffer[2], &system_state_zero, sizeof(system_state_zero_t));
-	buffer[sizeof(system_state_zero_t) + 1] = 0xF9;
+	buffer[1] = hash((uint8_t*)&system_state_zero, sizeof(system_state_zero_t));
+	memcpy(buffer + 2, &system_state_zero, sizeof(system_state_zero_t));
+	buffer[sizeof(system_state_zero_t) + 2] = 0xF9;
 
-	drop(buffer, sizeof(system_state_zero_t) + 2);
-taskEXIT_CRITICAL();
+	while(xSemaphoreTake(spi_semphr, SEM_WAIT_MS  / portTICK_RATE_MS) != pdTRUE) {}
+	drop(buffer, sizeof(buffer));
+	xSemaphoreGive(spi_semphr);
+//taskEXIT_CRITICAL();
 }
 
 void writeSysState()
 {
 
-	uint8_t buffer[sizeof(system_state_t) + 2];
+	uint8_t buffer[sizeof(system_state_t) + 3];
 
-taskENTER_CRITICAL();
+//taskENTER_CRITICAL();
 	system_state.SD = stream_file.res;
 
 	buffer[0] = 0xFF;
-	memcpy(buffer + 1, &system_state, sizeof(system_state_t));
-	buffer[sizeof(system_state_t) + 1] = 0xFF;
+	buffer[1] = hash((uint8_t*)&system_state, sizeof(system_state_t));
+	memcpy(buffer + 2, &system_state, sizeof(system_state_t));
+	buffer[sizeof(system_state_t) + 2] = 0xFF;
 
-	drop(buffer, sizeof(system_state_t) + 2);
-	send(buffer, sizeof(system_state_t) + 2);
-taskEXIT_CRITICAL();
+	while(xSemaphoreTake(spi_semphr, SEM_WAIT_MS / portTICK_RATE_MS) != pdTRUE) {}
+	drop(buffer, sizeof(buffer));
+	send(buffer, sizeof(buffer));
+	xSemaphoreGive(spi_semphr);
+
+//taskEXIT_CRITICAL();
 }
+
+#define TEST_TIME (10)
 
 void writeDataMPU(I2C_HandleTypeDef * hi2c)
 {
-	uint8_t buffer[sizeof(data_MPU9255_t) + 2];
+	uint8_t buffer[sizeof(data_MPU9255_t) + 3];
 
-taskENTER_CRITICAL();
+//taskENTER_CRITICAL();
 	if(hi2c->Instance == I2C1)
 	{
 		buffer[0] = 0xFA;
-		memcpy(buffer + 1, &data_MPU9255_1, sizeof(data_MPU9255_t));
-		buffer[sizeof(data_MPU9255_1) + 1] = 0xFA;
+		buffer[1] = hash((uint8_t*)&data_MPU9255_1, sizeof(data_MPU9255_t));
+		memcpy(buffer + 2, &data_MPU9255_1, sizeof(data_MPU9255_t));
+		buffer[sizeof(data_MPU9255_t) + 2] = 0xFA;
 	}
 	else
 	{
 		buffer[0] = 0xFB;
-		memcpy(buffer + 1, &data_MPU9255_2, sizeof(data_MPU9255_t));
-		buffer[sizeof(data_MPU9255_2) + 1] = 0xFB;
+		buffer[1] = hash((uint8_t*)&data_MPU9255_2, sizeof(data_MPU9255_t));
+		memcpy(buffer + 2, &data_MPU9255_2, sizeof(data_MPU9255_t));
+		buffer[sizeof(data_MPU9255_t) + 2] = 0xFB;
 	}
 
-	drop(buffer, sizeof(data_MPU9255_t) + 2);
-	send(buffer, sizeof(data_MPU9255_t) + 2);
+	while(xSemaphoreTake(spi_semphr, SEM_WAIT_MS / portTICK_RATE_MS) != pdTRUE) {}
+	drop(buffer, sizeof(buffer));
+	send(buffer, sizeof(buffer));
+	xSemaphoreGive(spi_semphr);
 
-taskEXIT_CRITICAL();
+//taskEXIT_CRITICAL();
 }
 
 void writeDataIsc()
 {
-	uint8_t buffer[sizeof(data_MPU9255_t) + 2];
+	uint8_t buffer[sizeof(data_MPU9255_t) + 3];
 
-taskENTER_CRITICAL();
+//taskENTER_CRITICAL();
 	buffer[0] = 0xFC;
-	memcpy(buffer + 1, &data_MPU9255_isc, sizeof(data_MPU9255_t));
-	buffer[sizeof(data_MPU9255_t) + 1] = 0xFC;
+	buffer[1] = hash((uint8_t*)&data_MPU9255_isc, sizeof(data_MPU9255_t));
+	memcpy(buffer + 2, &data_MPU9255_isc, sizeof(data_MPU9255_t));
+	buffer[sizeof(data_MPU9255_t) + 2] = 0xFC;
 
-	drop(buffer, sizeof(data_MPU9255_t) + 2);
-	send(buffer, sizeof(data_MPU9255_t) + 2);
-taskEXIT_CRITICAL();
+	while(xSemaphoreTake(spi_semphr, SEM_WAIT_MS / portTICK_RATE_MS) == pdTRUE) {}
+	drop(buffer, sizeof(buffer));
+	send(buffer, sizeof(buffer));
+	xSemaphoreGive(spi_semphr);
+
+//taskEXIT_CRITICAL();
 }
 
 void writeDataBMP()
 {
-	uint8_t buffer[sizeof(data_BMP280_t) + 2];
+	uint8_t buffer[sizeof(data_BMP280_t) + 3];
 
-taskENTER_CRITICAL();
+//taskENTER_CRITICAL();
 	buffer[0] = 0xFD;
-	memcpy(buffer + 1, &data_BMP280_1, sizeof(data_BMP280_t));
-	buffer[sizeof(data_BMP280_t) + 1] = 0xFD;
+	buffer[1] = hash((uint8_t*)&data_BMP280_1, sizeof(data_BMP280_t));
+	memcpy(buffer + 2, &data_BMP280_1, sizeof(data_BMP280_t));
+	buffer[sizeof(data_BMP280_t) + 2] = 0xFD;
 
-	drop(buffer, sizeof(data_BMP280_t) + 2);
-	send(buffer, sizeof(data_BMP280_t) + 2);
+	while(xSemaphoreTake(spi_semphr, SEM_WAIT_MS / portTICK_RATE_MS) != pdTRUE) {}
+	drop(buffer, sizeof(buffer));
+	send(buffer, sizeof(buffer));
+	xSemaphoreGive(spi_semphr);
 
 	buffer[0] = 0xFE;
-	memcpy(buffer + 1, &data_BMP280_2, sizeof(data_BMP280_t));
-	buffer[sizeof(data_BMP280_t) + 1] = 0xFE;
+	buffer[1] = hash((uint8_t*)&data_BMP280_2, sizeof(data_BMP280_t));
+	memcpy(buffer + 2, &data_BMP280_2, sizeof(data_BMP280_t));
+	buffer[sizeof(data_BMP280_t) + 2] = 0xFE;
 
-
-	drop(buffer, sizeof(data_BMP280_t) + 2);
-	send(buffer, sizeof(data_BMP280_t) + 2);
-taskEXIT_CRITICAL();
+	while(xSemaphoreTake(spi_semphr, SEM_WAIT_MS / portTICK_RATE_MS) != pdTRUE) {}
+	drop(buffer, sizeof(buffer));
+	send(buffer, sizeof(buffer));
+	xSemaphoreGive(spi_semphr);
+//taskEXIT_CRITICAL();
 }
 
 void writeDataTSL()
 {
-	uint8_t buffer[sizeof(data_TSL_t) + 2];
+	uint8_t buffer[sizeof(data_TSL_t) + 3];
 
-taskENTER_CRITICAL();
+//taskENTER_CRITICAL();
 	buffer[0] = 0xF8;
-	memcpy(buffer + 1, &data_TSL, sizeof(data_TSL_t));
-	buffer[sizeof(data_TSL_t) + 1] = 0xF8;
+	buffer[1] = hash((uint8_t*)&data_TSL, sizeof(data_TSL_t));
+	memcpy(buffer + 2, &data_TSL, sizeof(data_TSL_t));
+	buffer[sizeof(data_TSL_t) + 2] = 0xF8;
 
-	drop(buffer, sizeof(data_TSL_t) + 2);
-	send(buffer, sizeof(data_TSL_t) + 2);
-taskEXIT_CRITICAL();
+	while(xSemaphoreTake(spi_semphr, SEM_WAIT_MS / portTICK_RATE_MS) != pdTRUE) {}
+	drop(buffer, sizeof(buffer));
+	send(buffer, sizeof(buffer));
+	xSemaphoreGive(spi_semphr);
+//taskEXIT_CRITICAL();
 }
 
 void writeDataLidar()
 {
-	uint8_t buffer[sizeof(data_LIDAR_t) + 2];
+	uint8_t buffer[sizeof(data_LIDAR_t) + 3];
 
-taskENTER_CRITICAL();
+//taskENTER_CRITICAL();
 	buffer[0] = 0xF7;
-	memcpy(buffer + 1, &data_LIDAR, sizeof(data_LIDAR_t));
-	buffer[sizeof(data_LIDAR_t) + 1] = 0xF7;
+	buffer[1] = hash((uint8_t*)&data_LIDAR, sizeof(data_LIDAR_t));
+	memcpy(buffer + 2, &data_LIDAR, sizeof(data_LIDAR_t));
+	buffer[sizeof(data_LIDAR_t) + 2] = 0xF7;
 
-	drop(buffer, sizeof(data_LIDAR_t) + 2);
-	send(buffer, sizeof(data_LIDAR_t) + 2);
-taskEXIT_CRITICAL();
+	while(xSemaphoreTake(spi_semphr, SEM_WAIT_MS / portTICK_RATE_MS) != pdTRUE) {}
+	drop(buffer, sizeof(buffer));
+	send(buffer, sizeof(buffer));
+	xSemaphoreGive(spi_semphr);
+//taskEXIT_CRITICAL();
 }
 
+void writeDataGPS()
+{
+	uint8_t buffer[sizeof(data_GPS_t) + 3];
 
+//taskENTER_CRITICAL();
+	buffer[0] = 0xF6;
+	buffer[1] = hash((uint8_t*)&data_GPS, sizeof(data_GPS_t));
+	memcpy(buffer + 1, &data_GPS, sizeof(data_GPS_t));
+	buffer[sizeof(data_GPS_t) + 2] = 0xF6;
+
+	while(xSemaphoreTake(spi_semphr, SEM_WAIT_MS / portTICK_RATE_MS) != pdTRUE) {}
+	drop(buffer, sizeof(buffer));
+	send(buffer, sizeof(buffer));
+	xSemaphoreGive(spi_semphr);
+//taskEXIT_CRITICAL();
+}

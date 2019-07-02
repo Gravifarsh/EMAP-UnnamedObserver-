@@ -150,7 +150,7 @@ HAL_StatusTypeDef HAL_nRF24L01P_ReceivePacketNonExt(nRF24L01P *nRF, uint8_t *Dat
 	return HAL_OK;
 }
 
-HAL_StatusTypeDef HAL_nRF24L01P_TransmitPacketNonExt(nRF24L01P *nRF, uint8_t *Data){
+HAL_StatusTypeDef HAL_nRF24L01P_TransmitPacketNonExt(nRF24L01P *nRF, uint8_t *Data, uint32_t timeout){
 	nRF->Busy = 1;
 
 	HAL_nRF24L01P_CE_Low(nRF);
@@ -158,8 +158,10 @@ HAL_StatusTypeDef HAL_nRF24L01P_TransmitPacketNonExt(nRF24L01P *nRF, uint8_t *Da
 	HAL_nRF24L01P_WriteTXPayload(nRF, Data);
 	HAL_nRF24L01P_CE_High(nRF);
 
+	volatile uint32_t tickstart = HAL_GetTick(), tick;
+
 	uint8_t regStatus;
-	while(nRF->Busy){
+	while(nRF->Busy) {
 		if(HAL_nRF24L01P_ReadRegister(nRF, nRF_STATUS, &regStatus) != HAL_OK)
 		{
 			nRF->Busy = 0;
@@ -188,6 +190,11 @@ HAL_StatusTypeDef HAL_nRF24L01P_TransmitPacketNonExt(nRF24L01P *nRF, uint8_t *Da
 			HAL_nRF24L01P_WriteRegister(nRF, nRF_STATUS, &regStatus);
 			HAL_nRF24L01P_CE_High(nRF);
 			nRF->Busy = 0;
+		}
+		tick = HAL_GetTick() - tickstart;
+		if(tick >= timeout) {
+			nRF->Busy = 0;
+			return HAL_TIMEOUT;
 		}
 	}
 	return HAL_OK;
@@ -923,7 +930,9 @@ HAL_StatusTypeDef HAL_nRF24L01P_SendCommand(nRF24L01P *nRF, uint8_t Command, uin
 	}
 	/* ---- Fcn Process ---- */
 	HAL_nRF24L01P_nSS_Low(nRF); // notSlaveSelect pin is Low
-	if(HAL_SPI_TransmitReceive(nRF->hspi, tempTxBuffer, tempRxBuffer, Size + 1, nRF_SPI_TIMEOUT) != HAL_OK)
+	volatile HAL_StatusTypeDef rc;
+	rc = HAL_SPI_TransmitReceive(nRF->hspi, tempTxBuffer, tempRxBuffer, Size + 1, nRF_SPI_TIMEOUT);
+	if(rc != HAL_OK)
 	{
 		return HAL_ERROR;
 	}

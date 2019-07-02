@@ -85,7 +85,7 @@ uint8_t getAccelStaticShift(I2C_HandleTypeDef * hi2c ,float * gyroStaticShift, f
 {
 	uint8_t error = 0;
 	uint16_t zero_orientCnt = 100;
-	float time = 0, time_prev = (float)HAL_GetTick() / 1000;
+	uint32_t time = 0, time_prev = HAL_GetTick();
 
 	for (int i = 0; i < zero_orientCnt; i++)
 	{
@@ -99,7 +99,7 @@ uint8_t getAccelStaticShift(I2C_HandleTypeDef * hi2c ,float * gyroStaticShift, f
 		mpu9255_recalcGyro(gyroData, gyro);
 		mpu9255_recalcAccel(accelData, accel);
 
-		time = (float)HAL_GetTick() / 1000;
+		time = HAL_GetTick();
 
 		for (int k = 0; k < 3; k++)
 			gyro[k] -= gyroStaticShift[k];
@@ -107,7 +107,7 @@ uint8_t getAccelStaticShift(I2C_HandleTypeDef * hi2c ,float * gyroStaticShift, f
 		float quaternion[4] = { 0 };
 		MadgwickAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2],
 										accel[0], accel[1], accel[2],
-											time - time_prev, 0.033);
+											(float)(time - time_prev) / 1000, 0.033);
 		vect_rotate(accel, quaternion, accel_ISC);
 
 		for (int m = 0; m < 3; m++)
@@ -175,7 +175,10 @@ taskENTER_CRITICAL();
 		mpu9255_recalcGyro(gyroData, gyro);
 		mpu9255_recalcCompass(compassData, compass);
 
-		float _time = (float)HAL_GetTick() / 1000;
+		uint32_t _time = HAL_GetTick();
+
+		if(_time > 1000000)
+			trace_puts("HERE\n");
 
 		if (hi2c->Instance == I2C2)
 		{
@@ -207,7 +210,7 @@ taskEXIT_CRITICAL();
 			/////////	ОБНОВЛЯЕМ КВАТЕРНИОН  //////////////////
 			float quaternion[4] = { 0 };
 taskENTER_CRITICAL();
-			float dt = _time - system_prev_state.time;
+			float dt = (float)(_time - system_prev_state.time) / 1000;
 taskEXIT_CRITICAL();
 			MadgwickAHRSupdate(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], compass[0], compass[1], compass[2], dt, 1);
 
@@ -258,13 +261,18 @@ taskENTER_CRITICAL();
 	PROCESS_ERROR( rscs_bmp280_read(*dbmp, &pressure, &temp));
 	rscs_bmp280_calculate(IMU_bmp280_calibration_values_1, pressure, temp, &pressure_f, &temp_f);
 
-	float zero_pressure = system_state_zero.pressure;
+	float zero_pressure = 0;
+
+	if (hi2c->Instance == I2C1)
+		zero_pressure = system_state_zero.pressure1;
+	else
+		zero_pressure = system_state_zero.pressure2;
 taskEXIT_CRITICAL();
 
 	height = 18400 * log(zero_pressure / pressure_f);
 
 taskENTER_CRITICAL();
-	float _time = (float)HAL_GetTick() / 1000;
+	uint32_t _time = HAL_GetTick();
 	if(hi2c->Instance == I2C1)
 	{
 		data_raw_BMP280_1.pressure = pressure;
@@ -317,10 +325,16 @@ taskENTER_CRITICAL();
 
 	for(int i = 0; i < 10 && system_state.BMP280_1; i++)
 		system_state.BMP280_1 = bmp280_init(&i2c_IMU_1, &IMU_bmp280_1);
+	for(int i = 0; i < 10 && system_state.BMP280_2; i++)
+		system_state.BMP280_2 = bmp280_init(&i2c_IMU_2, &IMU_bmp280_2);
+
 	if(!system_state.BMP280_1)
 		system_state.BMP280_1 = updateBMP280(&i2c_IMU_1, &IMU_bmp280_1);
+	if(!system_state.BMP280_2)
+		system_state.BMP280_2 = updateBMP280(&i2c_IMU_2, &IMU_bmp280_2);
 
-	system_state_zero.pressure = data_BMP280_1.pressure;
+	system_state_zero.pressure1 = data_BMP280_1.pressure;
+	system_state_zero.pressure2 = data_BMP280_2.pressure;
 	for(int i = 0; i < 4; i++)
 		system_state_zero.quaternion[i] = data_MPU9255_isc.quaternion[i];
 end:
@@ -335,47 +349,47 @@ void IMU_Task()
 
 	for(;;)
 	{
-taskENTER_CRITICAL();
+//taskENTER_CRITICAL();
 		if(!system_state.MPU9255_1)
 		{
 			system_state.MPU9255_1 = updateIMU(&i2c_IMU_1);
-			writeDataMPU(&i2c_IMU_1);
+			if(!system_state.MPU9255_1) writeDataMPU(&i2c_IMU_1);
 		}
 		else
 			system_state.MPU9255_1 = mpu9255_init(&i2c_IMU_1, I2C1);
-taskEXIT_CRITICAL();
+//taskEXIT_CRITICAL();
 
-taskENTER_CRITICAL();
+//taskENTER_CRITICAL();
 		if(!system_state.MPU9255_2)
 		{
 			system_state.MPU9255_2 = updateIMU(&i2c_IMU_2);
-			writeDataMPU(&i2c_IMU_2);
+			if(!system_state.MPU9255_1) writeDataMPU(&i2c_IMU_2);
 		}
 		else
 			system_state.MPU9255_2 = mpu9255_init(&i2c_IMU_2, I2C2);
-taskEXIT_CRITICAL();
+//taskEXIT_CRITICAL();
 
-taskENTER_CRITICAL();
+//taskENTER_CRITICAL();
 		if(!system_state.BMP280_1)
 		{
 			system_state.BMP280_1 = updateBMP280(&i2c_IMU_1, &IMU_bmp280_1);
-			writeDataBMP(&i2c_IMU_1);
+			if(!system_state.MPU9255_1) writeDataBMP(&i2c_IMU_1);
 		}
 		else
 			system_state.BMP280_1 = bmp280_init(&i2c_IMU_1, &IMU_bmp280_1);
-taskEXIT_CRITICAL();
+//taskEXIT_CRITICAL();
 
 
 
-taskENTER_CRITICAL();
+//taskENTER_CRITICAL();
 		if(!system_state.BMP280_2)
 		{
 			system_state.BMP280_2 = updateBMP280(&i2c_IMU_2, &IMU_bmp280_2);
-			writeDataBMP(&i2c_IMU_2);
+			if(!system_state.MPU9255_1) writeDataBMP(&i2c_IMU_2);
 		}
 		else
 			system_state.BMP280_2 = bmp280_init(&i2c_IMU_2, &IMU_bmp280_2);
-taskEXIT_CRITICAL();
+//taskEXIT_CRITICAL();
 
 		vTaskDelay(10 / portTICK_RATE_MS);
 
