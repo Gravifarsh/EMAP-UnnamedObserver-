@@ -23,12 +23,26 @@
 #include "EMAPConfig.h"
 //#include "UNICS_bmp280.h"
 
+
+void iauPmp(float a[3], float b[3], float amb[3]);
+void iauCp(float p[3], float c[3]);
+void iauRxp(float r[3][3], float p[3], float rp[3]);
+
+
+static float magnASA[3];
+
+
 int mpu9255_readRegister(I2C_HandleTypeDef * hi2c, mpu9255_address_t address, uint8_t reg_address, uint8_t * dataRead, uint8_t count)
 {
 	return HAL_I2C_Mem_Read(hi2c, address, reg_address, I2C_MEMADD_SIZE_8BIT, dataRead, count, 0xFF);
 }
 
 int mpu9255_writeRegister(I2C_HandleTypeDef * hi2c, mpu9255_address_t address, uint8_t reg_address, uint8_t dataWrite)
+{
+	return HAL_I2C_Mem_Write(hi2c, address, reg_address, I2C_MEMADD_SIZE_8BIT, &dataWrite, 1, 0xFF);
+}
+
+int mpu9255_rewriteRegister(I2C_HandleTypeDef * hi2c, mpu9255_address_t address, uint8_t reg_address, uint8_t dataWrite)
 {
 	int error = 0;
 	uint8_t regData = 0x00;
@@ -41,6 +55,7 @@ int mpu9255_writeRegister(I2C_HandleTypeDef * hi2c, mpu9255_address_t address, u
 end:
 	return error;
 }
+
 
 int mpu9255_init(I2C_HandleTypeDef* hi2c, I2C_TypeDef * instance)
 {
@@ -70,26 +85,51 @@ int mpu9255_init(I2C_HandleTypeDef* hi2c, I2C_TypeDef * instance)
 	PROCESS_ERROR(HAL_I2C_Init(hi2c));
 	HAL_Delay(400);
 
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL,	107,	0b10000000));	//RESET
+	PROCESS_ERROR(mpu9255_rewriteRegister(hi2c, GYRO_AND_ACCEL,	107,	0b10000000));	//RESET
 	HAL_Delay(400);
 
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL,	25,		0b00000001));	//Sample Rate Divider
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL,	26,		0b00000101));	//config (DLPF = 101)
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL,	28,		(0b00000000 | (ACCEL_RANGE << 3)))); 	//accel config (rate 4g = 01)
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL,	29,		0b00000100));	//accel config 2 (Fch_b = 0, DLPF = 100)
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL,	35,		0b00000000));	//FIFO enable (not enabled)
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL,	56,		0b00000000));	//interrupt enable (int disable = 0)
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL,	106,	0b00000000));	//user control
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL,	107,	0b00000001));	//power managment 1
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL,	108,	0b00000000));	//power managment 2
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL,	27,		(0b00000000 | (GYRO_RANGE << 4)) ));	//gyro config (rate 500dps = 01, Fch_b = 00)
+	PROCESS_ERROR(mpu9255_rewriteRegister(hi2c, GYRO_AND_ACCEL,	25,		0b00000001));	//Sample Rate Divider
+	PROCESS_ERROR(mpu9255_rewriteRegister(hi2c, GYRO_AND_ACCEL,	26,		0b00000101));	//config (DLPF = 101)
+	PROCESS_ERROR(mpu9255_rewriteRegister(hi2c, GYRO_AND_ACCEL,	28,		(0b00000000 | (ACCEL_RANGE << 3)))); 	//accel config (rate 4g = 01)
+	PROCESS_ERROR(mpu9255_rewriteRegister(hi2c, GYRO_AND_ACCEL,	29,		0b00000100));	//accel config 2 (Fch_b = 0, DLPF = 100)
+	PROCESS_ERROR(mpu9255_rewriteRegister(hi2c, GYRO_AND_ACCEL,	35,		0b00000000));	//FIFO enable (not enabled)
+	PROCESS_ERROR(mpu9255_rewriteRegister(hi2c, GYRO_AND_ACCEL,	56,		0b00000000));	//interrupt enable (int disable = 0)
+	PROCESS_ERROR(mpu9255_rewriteRegister(hi2c, GYRO_AND_ACCEL,	106,	0b00000000));	//user control
+	PROCESS_ERROR(mpu9255_rewriteRegister(hi2c, GYRO_AND_ACCEL,	107,	0b00000001));	//power managment 1
+	PROCESS_ERROR(mpu9255_rewriteRegister(hi2c, GYRO_AND_ACCEL,	108,	0b00000000));	//power managment 2
+//	PROCESS_ERROR(mpu9255_rewriteRegister(hi2c, GYRO_AND_ACCEL,	27,		(0b00000000 | (GYRO_RANGE << 4)) ));	//gyro config (rate 500dps = 01, Fch_b = 00)
+	PROCESS_ERROR(mpu9255_rewriteRegister(hi2c, GYRO_AND_ACCEL,	27,		0b000000000 | (1 << 4)));
 
-	//compass init
+	//  Magnetometer init
 	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL,	55,		0b00000010));	//режим bypass on
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, COMPASS,		0x0A,	0b00010110));	//control 1
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL,	55,		0b00000000));	//режим bypass off
+
+	PROCESS_ERROR(mpu9255_writeRegister(hi2c, COMPASS,	0x0A,   AK8963_MODE_POWER_DOWN));	// power down before entering fuse mode
+	HAL_Delay(20);
+
+	PROCESS_ERROR(mpu9255_writeRegister(hi2c, COMPASS,	0x0A,   AK8963_MODE_FUSE_ROM));		// Enter Fuse ROM access mode
+	HAL_Delay(10);
+
+	static int8_t ASA[3] = {};
+	PROCESS_ERROR(mpu9255_readRegister(hi2c, COMPASS,		0x10,   (uint8_t*)ASA, 3));   //ASAX
+	//  Recalc magnetometer sensitivity adjustment values to floats to store them
+	taskENTER_CRITICAL();
+	magnASA[0] = (float)(ASA[0] + 128) / (256);
+	magnASA[1] = (float)(ASA[1] + 128) / (256);
+	magnASA[2] = (float)(ASA[2] + 128) / (256);
+	taskEXIT_CRITICAL();
+
+	PROCESS_ERROR(mpu9255_writeRegister(hi2c, COMPASS,        0x0A,   AK8963_MODE_POWER_DOWN));	// power down after reading
+	HAL_Delay(20);
+
+	uint8_t state = 0;
+	//	Clear status registers
+	PROCESS_ERROR(mpu9255_readRegister(hi2c, COMPASS, 	0x02, &state, 1));
+	PROCESS_ERROR(mpu9255_readRegister(hi2c, COMPASS, 	0x09, &state, 1));
+
+	PROCESS_ERROR(mpu9255_writeRegister(hi2c, COMPASS,	0x0A,   AK8963_MODE_100HZ | AK8963_BIT_16_BIT));
 
 end:
+	mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL, 55,     0b00000000);   		//режим bypass off
 	return error;
 }
 
@@ -124,29 +164,46 @@ int mpu9255_readCompass(I2C_HandleTypeDef * hi2c, int16_t * raw_compassData)
 {
 	int error = 0;
 
-	// state of magn (ready to give data or not)
-	uint8_t magn_state;
+	//	state of magn (ready to give data or not)
+	uint8_t magn_state = 0;
 
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL, 55, 0b00000010));	//режим bypass on
-	mpu9255_readRegister(hi2c, COMPASS, 0x02, &magn_state, 1);
-	//printf("read_dummy_error = %d\n", read_dummy_error);
+	/*
+	 * Bypass mode on, get ST1 register value
+	 */
+	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL, 55, 0b00000010));	//	bypass on
 	PROCESS_ERROR(mpu9255_readRegister(hi2c, COMPASS, 0x02, &magn_state, 1));
 
-
-	if ((magn_state && 0x01) != 1)
+	/*
+	 * Check if ST1 value bit ready is set
+	 */
+	if (magn_state & AK8963_DATA_READY)
 	{
-//		state_system.state &= ~(1 << 1);		//магнитометр не готов
-		goto end;
+		magn_state = 0;
+
+		/*
+		 * Read data values and read ST2 register to prove that data values is read
+		 * I found that I should read 7 bytes together
+		 */
+		uint8_t bytes[7] = {};
+		PROCESS_ERROR(mpu9255_readRegister(hi2c, COMPASS, 0x03, bytes, 7));
+
+		for (int i = 0; i < 3; i++)
+			raw_compassData[i] = (int16_t)((bytes[2*i+1] << 8) | bytes[2*i]);
+
+		magn_state = bytes[6];
+
+		/*
+		 * Check HOFL bit for overflow
+		 */
+		if (magn_state & AK8963_DATA_OVERFLOW)
+		{
+			for (uint8_t i = 0; i < 3; i++)
+				raw_compassData[i] = 0;
+		}
 	}
 
-//	state_system.state |= (1 << 1);	//магнитометр готов
-	PROCESS_ERROR(mpu9255_readRegister(hi2c, COMPASS, 0x03, (uint8_t*)raw_compassData, 6));
-	PROCESS_ERROR(mpu9255_readRegister(hi2c, COMPASS, 0x09, &magn_state, 1));
-
-	//FIXME: не надо ли свапать здесь байты???
-
 end:
-	PROCESS_ERROR(mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL, 55, 0b00000000));	//режим bypass off
+	mpu9255_writeRegister(hi2c, GYRO_AND_ACCEL, 55, 0b00000000);	//режим bypass off
 	return error;
 }
 
@@ -154,46 +211,111 @@ void mpu9255_recalcAccel(const int16_t * raw_accelData, float * accelData)
 {
 	float _accelData[3] = {0, 0, 0};
 
-	_accelData[0] = - (float)(raw_accelData[0]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
-	_accelData[1] =   (float)(raw_accelData[2]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
-	_accelData[2] =   (float)(raw_accelData[1]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
+	int accel_range = 1;
+	for (int i = 0; i < ACCEL_RANGE; i++)
+		accel_range *= 2;
+	float factor = accel_range * MPU9255_ACCEL_SCALE_FACTOR;
 
-//	trace_printf("_accelData[0]  %f \n", _accelData[0]);
-//	trace_printf("_accelData[1]  %f \n", _accelData[1]);
-//	trace_printf("_accelData[2]  %f \n", _accelData[2]);
+	_accelData[0] = - (float)(raw_accelData[0]) * factor;
+	_accelData[1] =   (float)(raw_accelData[2]) * factor;
+	_accelData[2] =   (float)(raw_accelData[1]) * factor;
 
-//	float offset_vector[3] = {X_ACCEL_OFFSET, Y_ACCEL_OFFSET, Z_ACCEL_OFFSET};
-//	float transform_matrix[3][3] =	{{XX_ACCEL_TRANSFORM_MATIX, XY_ACCEL_TRANSFORM_MATIX, XZ_ACCEL_TRANSFORM_MATIX},
-//									 {XY_ACCEL_TRANSFORM_MATIX, YY_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX},
-//									 {XZ_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX, ZZ_ACCEL_TRANSFORM_MATIX}};
-//
-//	iauPmp(_accelData, offset_vector, accelData);
-//	iauRxp(transform_matrix, accelData, accelData);
+	float offset_vector[3] = {X_ACCEL_OFFSET, Y_ACCEL_OFFSET, Z_ACCEL_OFFSET};
+	float transform_matrix[3][3] =	{{XX_ACCEL_TRANSFORM_MATIX, XY_ACCEL_TRANSFORM_MATIX, XZ_ACCEL_TRANSFORM_MATIX},
+									 {XY_ACCEL_TRANSFORM_MATIX, YY_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX},
+									 {XZ_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX, ZZ_ACCEL_TRANSFORM_MATIX}};
+
+	iauPmp(_accelData, offset_vector, accelData);
+	iauRxp(transform_matrix, accelData, accelData);
 
 	for (int i = 0; i < 3; i++) {
 		accelData[i] = _accelData[i];
 	}
 }
 
+
 void mpu9255_recalcGyro(const int16_t * raw_gyroData, float * gyroData)
 {
-	gyroData[0] = - (float)(raw_gyroData[0]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
-	gyroData[1] = 	(float)(raw_gyroData[2]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
-	gyroData[2] = 	(float)(raw_gyroData[1]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+	float _gyroData[3] = {0, 0, 0};
+
+	int gyro_range = 1;
+	for (int i = 0; i < GYRO_RANGE; i++)
+		gyro_range *= 2;
+	float factor = gyro_range * MPU9255_GYRO_SCALE_FACTOR;
+
+	_gyroData[0] = - (float)(raw_gyroData[0]) * factor;
+	_gyroData[1] =   (float)(raw_gyroData[2]) * factor;
+	_gyroData[2] =   (float)(raw_gyroData[1]) * factor;
+
+	for (int i = 0; i < 3; i++) {
+		gyroData[i] = _gyroData[i];
+	}
+
 }
+
 
 void mpu9255_recalcCompass(const int16_t * raw_compassData, float * compassData)
 {
-//	float raw_data[3] = {(float)raw_compassData[0], (float)raw_compassData[1], (float)raw_compassData[2]};
-//	float offset_vector[3] = {X_COMPAS_OFFSET, Y_COMPAS_OFFSET, Z_COMPAS_OFFSET};
-//	float transform_matrix[3][3] =	{	{XX_COMPAS_TRANSFORM_MATIX, XY_COMPAS_TRANSFORM_MATIX, XZ_COMPAS_TRANSFORM_MATIX},
-//										{XY_COMPAS_TRANSFORM_MATIX, YY_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX},
-//										{XZ_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX, ZZ_COMPAS_TRANSFORM_MATIX}};
-//
-//	iauPmp(raw_data, offset_vector, compassData);
-//	iauRxp(transform_matrix, compassData, compassData);
+	//переводим систему координат магнетометра в систему координат MPU
+	float raw_data[3] = {	- (float)raw_compassData[1],
+							  (float)raw_compassData[2],
+							- (float)raw_compassData[0]};
 
-	compassData[0] = - (float)raw_compassData[1];
-	compassData[1] =   (float)raw_compassData[2];
-	compassData[2] = - (float)raw_compassData[0];
+	/*
+	 * Adjustment
+	 */
+	for (uint8_t i = 0; i < 3; i++)
+		raw_data[i] *= magnASA[i];
+
+
+	float offset_vector[3] = {X_COMPAS_OFFSET, Y_COMPAS_OFFSET, Z_COMPAS_OFFSET};
+	float transform_matrix[3][3] =	{	{XX_COMPAS_TRANSFORM_MATIX, XY_COMPAS_TRANSFORM_MATIX, XZ_COMPAS_TRANSFORM_MATIX},
+										{XY_COMPAS_TRANSFORM_MATIX, YY_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX},
+										{XZ_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX, ZZ_COMPAS_TRANSFORM_MATIX}};
+
+	iauPmp(raw_data, offset_vector, compassData);
+	iauRxp(transform_matrix, compassData, compassData);
+
+//	for (int i = 0; i < 3; i++)
+//		compassData[i] = raw_data[i];
+}
+
+
+void iauPmp(float a[3], float b[3], float amb[3])
+{
+   amb[0] = a[0] - b[0];
+   amb[1] = a[1] - b[1];
+   amb[2] = a[2] - b[2];
+
+   return;
+}
+
+void iauCp(float p[3], float c[3])
+{
+   c[0] = p[0];
+   c[1] = p[1];
+   c[2] = p[2];
+
+   return;
+}
+
+void iauRxp(float r[3][3], float p[3], float rp[3])
+{
+   float w, wrp[3];
+   int i, j;
+
+
+/* Matrix r * vector p. */
+   for (j = 0; j < 3; j++) {
+       w = 0.0;
+       for (i = 0; i < 3; i++) {
+           w += r[j][i] * p[i];
+       }
+       wrp[j] = w;
+   }
+
+/* Return the result. */
+   iauCp(wrp, rp);
+
+   return;
 }

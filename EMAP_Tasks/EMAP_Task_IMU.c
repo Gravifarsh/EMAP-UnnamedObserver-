@@ -48,7 +48,7 @@ uint8_t bmp280_init(I2C_HandleTypeDef * hi2c, rscs_bmp280_descriptor_t ** dbmp28
 uint8_t getGyroStaticShifts(I2C_HandleTypeDef * hi2c ,float * gyro_staticShift)
 {
 	uint8_t error = 0;
-	uint16_t zero_orientCnt = 200;
+	uint16_t zero_orientCnt = 3000;
 
 	for (int i = 0; i < zero_orientCnt; i++)
 	{
@@ -73,7 +73,7 @@ end:
 uint8_t getAccelStaticShift(I2C_HandleTypeDef * hi2c ,float * gyroStaticShift, float * accelStaticShift)
 {
 	uint8_t error = 0;
-	uint16_t zero_orientCnt = 100;
+	uint16_t zero_orientCnt = 300;
 	uint32_t time = 0, time_prev = HAL_GetTick();
 
 	for (int i = 0; i < zero_orientCnt; i++)
@@ -211,7 +211,7 @@ uint8_t updateIMU(I2C_HandleTypeDef * hi2c)
 taskENTER_CRITICAL();
 			float dt = (float)(_time - system_prev_state.time) / 1000;
 taskEXIT_CRITICAL();
-			MadgwickAHRSupdate(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], compass[0], compass[1], compass[2], dt, 1);
+			MadgwickAHRSupdate(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], compass[0], compass[1], compass[2], dt, 0.041);
 
 			//	копируем кватернион в глобальную структуру
 //taskENTER_CRITICAL();
