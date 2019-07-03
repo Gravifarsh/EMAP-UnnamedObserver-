@@ -11,7 +11,6 @@
 #include "EMAPConfig.h"
 
 #define BLOCK_SIZE	512
-#define SEM_WAIT_MS (200)
 #define NRF_TIMEOUT (50)
 
 void DATA_Init();

@@ -12,7 +12,7 @@ void STATE_Task()
 {
 	for(;;)
 	{
-		vTaskDelay(5000 / portTICK_RATE_MS);
+		vTaskDelay(1000 / portTICK_RATE_MS);
 		writeSysState();
 	}
 }

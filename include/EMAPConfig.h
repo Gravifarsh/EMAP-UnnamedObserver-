@@ -158,5 +158,8 @@ extern data_MPU9255_t 	data_prev_MPU9255_isc;
 extern system_state_t 	system_prev_state;
 
 extern SemaphoreHandle_t spi_semphr;
+extern SemaphoreHandle_t i2c_semphr;
+
+#define SEM_WAIT_MS (10)
 
 #endif

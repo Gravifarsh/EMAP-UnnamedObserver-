@@ -43,14 +43,17 @@ void TSL_Task()
 {
 	for(;;)
 	{
-		vTaskDelay(250 / portTICK_RATE_MS);
-	taskENTER_CRITICAL();
+		//vTaskDelay(250 / portTICK_RATE_MS);
+		while(xSemaphoreTake(i2c_semphr, SEM_WAIT_MS / portTICK_RATE_MS) != pdTRUE) {}
+		HAL_I2C_Init(&i2c_tsl2581);
 		tsl2581_readADC(&tsl2581, &data_TSL.ch0, &data_TSL.ch1);
+		xSemaphoreGive(i2c_semphr);
+	taskENTER_CRITICAL();
 		data_TSL.time = HAL_GetTick();
-		tsl2581_calcLux(&tsl2581, &data_TSL.lux, &data_TSL.ch0, &data_TSL.ch1);
 	taskEXIT_CRITICAL();
-		vTaskDelay(250 / portTICK_RATE_MS);
+		tsl2581_calcLux(&tsl2581, &data_TSL.lux, &data_TSL.ch0, &data_TSL.ch1);
 		writeDataTSL();
+		vTaskDelay(200 / portTICK_RATE_MS);
 		//trace_printf("lux: %d\nch0: %d\nch1: %d\n===========\n", data_TSL.lux, data_TSL.ch0, data_TSL.ch1);
 	}
 }
